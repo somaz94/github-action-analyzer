@@ -330,29 +330,62 @@ func generateVersionUpdateExample(lang string) string {
 	}
 }
 
-// Analyzer 구조체의 analyzeCaching 메서드도 수정
+// Modifying the analyzeCaching method of Analyzer structures as well
 func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
-	// 중복 제거를 위한 맵
-	uniqueRecommendations := make(map[string]models.CacheRecommendation)
+	// 기본 GitHub Actions 캐시 추천사항 항상 추가
+	report.CacheRecommendations = append(report.CacheRecommendations, actionsCacheStrategies...)
 
-	for _, run := range runs {
-		recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
-		if err != nil {
-			return err
-		}
+	// 워크플로우 파일 경로 조정
+	workflowPath := report.WorkflowFile
+	if !strings.HasPrefix(workflowPath, ".github/workflows/") {
+		workflowPath = fmt.Sprintf(".github/workflows/%s", workflowPath)
+	}
 
-		// 중복 제거하면서 추가
-		for _, rec := range recommendations {
-			uniqueRecommendations[rec.Path+rec.Description] = rec
+	// 워크플로우 파일 내용 가져오기
+	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, workflowPath)
+	if err == nil { // 파일을 찾은 경우에만 언어 감지
+		// 워크플로우 파일에서 사용된 언어 감지
+		detectedLangs := detectLanguagesFromWorkflow(workflowContent)
+
+		// 감지된 언어별 캐시 전략 추가
+		for _, lang := range detectedLangs {
+			if strategies, ok := cacheStrategies[lang]; ok {
+				report.CacheRecommendations = append(report.CacheRecommendations, strategies...)
+			}
 		}
 	}
 
-	// 중복 제거된 추천사항만 추가
-	for _, rec := range uniqueRecommendations {
-		report.CacheRecommendations = append(report.CacheRecommendations, rec)
+	// 실행 이력이 있는 경우 추가 분석
+	if len(runs) > 0 {
+		for _, run := range runs {
+			recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
+			if err != nil {
+				continue // 개별 실행 분석 실패는 무시
+			}
+			report.CacheRecommendations = append(report.CacheRecommendations, recommendations...)
+		}
 	}
+
+	// 중복 제거
+	report.CacheRecommendations = deduplicateCacheRecommendations(report.CacheRecommendations)
 
 	return nil
+}
+
+// 캐시 추천사항 중복 제거
+func deduplicateCacheRecommendations(recommendations []models.CacheRecommendation) []models.CacheRecommendation {
+	seen := make(map[string]bool)
+	var result []models.CacheRecommendation
+
+	for _, rec := range recommendations {
+		key := rec.Path + rec.Description
+		if !seen[key] {
+			seen[key] = true
+			result = append(result, rec)
+		}
+	}
+
+	return result
 }
 
 func (a *Analyzer) generateCostSavingTips(report *models.PerformanceReport) {
@@ -419,4 +452,25 @@ func analyzeDockerfile(content string) []models.DockerOptimization {
 	}
 
 	return optimizations
+}
+
+// 워크플로우 파일에서 사용된 언어 감지
+func detectLanguagesFromWorkflow(content string) []string {
+	var languages []string
+	languagePatterns := map[string][]string{
+		"go":     {"go build", "go test", "setup-go", "actions/setup-go"},
+		"node":   {"npm", "yarn", "setup-node", "actions/setup-node", "package.json"},
+		"python": {"pip", "python", "setup-python", "actions/setup-python", "requirements.txt"},
+	}
+
+	for lang, patterns := range languagePatterns {
+		for _, pattern := range patterns {
+			if strings.Contains(content, pattern) {
+				languages = append(languages, lang)
+				break
+			}
+		}
+	}
+
+	return unique(languages)
 }

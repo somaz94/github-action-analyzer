@@ -58,6 +58,8 @@ jobs:
   - Workflow structure improvements
   - Resource allocation
 
+<br/>
+
 ## Supported Languages & Frameworks
 
 | Language/Framework | Cache Recommendations | Version Check |
