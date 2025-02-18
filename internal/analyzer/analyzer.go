@@ -105,8 +105,8 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
         uses: actions/cache@v4
         with:
           path: |
-		    ~/go/pkg/mod
-			~/.cache/go-build
+            ~/go/pkg/mod
+            ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-`,
