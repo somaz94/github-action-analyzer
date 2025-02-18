@@ -96,24 +96,19 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
 	"go": {
 		{
 			Path:        "~/.cache/go-build",
-			Description: "Cache Go build artifacts",
-			Impact:      "Can reduce build time by up to 30%",
+			Description: "Cache Go build artifacts and modules",
+			Impact:      "Can reduce build time and dependency download time significantly",
 			Example: `      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '%s'
-          cache: true  # This enables Go build cache`,
-		},
-		{
-			Path:        "~/go/pkg/mod",
-			Description: "Cache Go modules",
-			Impact:      "Can reduce dependency download time significantly",
-			Example: `      - name: Cache Go modules
-        uses: actions/cache@v4
+          cache: true  # This enables Go build cache
+
+      - uses: actions/cache@v4
         with:
           path: |
-            ~/go/pkg/mod
             ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-`,
