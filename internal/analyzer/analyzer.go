@@ -3,6 +3,8 @@ package analyzer
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,7 +51,7 @@ func (a *Analyzer) Analyze(ctx context.Context, owner, repo, workflowFile string
 	}
 
 	// Analyze caching strategies
-	if err := a.analyzeCaching(ctx, runs, report); err != nil {
+	if err := a.analyzeCaching(ctx, owner, repo, runs, report); err != nil {
 		return nil, err
 	}
 
@@ -105,10 +107,226 @@ func (a *Analyzer) analyzeDockerConfigs(ctx context.Context, owner, repo string,
 	return nil
 }
 
-func (a *Analyzer) analyzeCaching(_ context.Context, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
+var (
+	// 최신 버전 정보
+	latestVersions = map[string]string{
+		"go":     "1.22",
+		"node":   "20",
+		"python": "3.12",
+	}
+
+	// GitHub Actions 관련 캐시 전략
+	actionsCacheStrategies = []models.CacheRecommendation{
+		{
+			Path:        "~/.github/actions",
+			Description: "Cache GitHub Actions",
+			Impact:      "Can reduce workflow execution time by caching action downloads",
+			Example: `      - name: Cache GitHub Actions
+        uses: actions/cache@v4
+        with:
+          path: ~/.github/actions
+          key: ${{ runner.os }}-actions-${{ hashFiles('.github/workflows/**') }}`,
+		},
+	}
+
+	// 언어별 캐시 전략
+	cacheStrategies = map[string][]models.CacheRecommendation{
+		"go": {
+			{
+				Path:        "~/.cache/go-build",
+				Description: "Cache Go build artifacts",
+				Impact:      "Can reduce build time by up to 30%",
+				Example: `      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '` + latestVersions["go"] + `'
+          cache: true  # This enables Go build cache`,
+			},
+			{
+				Path:        "~/go/pkg/mod",
+				Description: "Cache Go modules",
+				Impact:      "Can reduce dependency download time significantly",
+				Example: `      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-`,
+			},
+		},
+		"node": {
+			{
+				Path:        "~/.npm",
+				Description: "Cache npm dependencies",
+				Impact:      "Can reduce npm install time by up to 50%",
+				Example: `      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '` + latestVersions["node"] + `'
+          cache: 'npm'  # This enables npm cache`,
+			},
+		},
+		"python": {
+			{
+				Path:        "~/.cache/pip",
+				Description: "Cache pip dependencies",
+				Impact:      "Can reduce pip install time significantly",
+				Example: `      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '` + latestVersions["python"] + `'
+          cache: 'pip'  # This enables pip cache
+          cache-dependency-path: |
+            **/requirements.txt
+            **/requirements-dev.txt`,
+			},
+		},
+	}
+)
+
+// 워크플로우에서 사용된 언어/프레임워크 감지
+func detectLanguages(logs string) []string {
+	var languages []string
+	languagePatterns := map[string][]string{
+		"go":     {"go build", "go test", "go.mod", "go.sum"},
+		"node":   {"npm", "yarn", "package.json", "node_modules"},
+		"python": {"pip", "requirements.txt", "setup.py", "poetry"},
+	}
+
+	for lang, patterns := range languagePatterns {
+		for _, pattern := range patterns {
+			if strings.Contains(logs, pattern) {
+				languages = append(languages, lang)
+				break
+			}
+		}
+	}
+
+	return unique(languages)
+}
+
+// 중복 제거 헬퍼 함수
+func unique(slice []string) []string {
+	keys := make(map[string]bool)
+	var list []string
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
+func analyzeCacheHitPatterns(ctx context.Context, owner, repo string, run *gh.WorkflowRun, client GithubClient) ([]models.CacheRecommendation, error) {
+	uniqueRecommendations := make(map[string]models.CacheRecommendation)
+
+	// GitHub Actions 캐시 추천 추가
+	for _, rec := range actionsCacheStrategies {
+		uniqueRecommendations[rec.Path] = rec
+	}
+
+	// 워크플로우 로그 가져오기
+	logs, err := client.GetWorkflowJobLogs(ctx, owner, repo, run.GetID())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workflow logs: %v", err)
+	}
+
+	// 사용된 언어 감지 및 버전 체크
+	detectedLangs := detectLanguages(logs)
+	for _, lang := range detectedLangs {
+		// 언어별 캐시 전략 추가
+		if strategies, ok := cacheStrategies[lang]; ok {
+			for _, rec := range strategies {
+				uniqueRecommendations[rec.Path] = rec
+			}
+		}
+
+		// 버전 체크 및 업데이트 추천
+		if outdated := detectOutdatedVersion(logs, lang); outdated {
+			rec := models.CacheRecommendation{
+				Path:        fmt.Sprintf("%s-version", lang),
+				Description: fmt.Sprintf("Update %s to latest version %s", lang, latestVersions[lang]),
+				Impact:      "Latest version includes performance improvements and security fixes",
+				Example:     generateVersionUpdateExample(lang),
+			}
+			uniqueRecommendations[rec.Path] = rec
+		}
+	}
+
+	var recommendations []models.CacheRecommendation
+	for _, rec := range uniqueRecommendations {
+		recommendations = append(recommendations, rec)
+	}
+
+	return recommendations, nil
+}
+
+func detectOutdatedVersion(logs, lang string) bool {
+	// 버전 패턴 정의
+	versionPatterns := map[string]string{
+		"go":     `go version go([\d\.]+)`,
+		"node":   `node v?([\d\.]+)`,
+		"python": `python-?([\d\.]+)`,
+	}
+
+	if pattern, ok := versionPatterns[lang]; ok {
+		re := regexp.MustCompile(pattern)
+		matches := re.FindStringSubmatch(logs)
+
+		if len(matches) > 1 {
+			currentVersion := matches[1]
+			latestVersion := latestVersions[lang]
+
+			// 버전 비교
+			current := strings.Split(currentVersion, ".")
+			latest := strings.Split(latestVersion, ".")
+
+			// 메이저 버전 비교
+			if len(current) > 0 && len(latest) > 0 {
+				currentMajor, err1 := strconv.Atoi(current[0])
+				latestMajor, err2 := strconv.Atoi(latest[0])
+
+				if err1 == nil && err2 == nil && currentMajor < latestMajor {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func generateVersionUpdateExample(lang string) string {
+	switch lang {
+	case "go":
+		return fmt.Sprintf(`      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '%s'`, latestVersions[lang])
+	case "node":
+		return fmt.Sprintf(`      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '%s'`, latestVersions[lang])
+	case "python":
+		return fmt.Sprintf(`      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '%s'`, latestVersions[lang])
+	default:
+		return ""
+	}
+}
+
+// Analyzer 구조체의 analyzeCaching 메서드도 수정
+func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
 	for _, run := range runs {
-		// Analyze cache usage and get recommendations
-		recommendations := analyzeCacheHitPatterns(run)
+		recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
+		if err != nil {
+			return err
+		}
 		if len(recommendations) > 0 {
 			report.CacheRecommendations = append(report.CacheRecommendations, recommendations...)
 		}
@@ -180,40 +398,4 @@ func analyzeDockerfile(content string) []models.DockerOptimization {
 	}
 
 	return optimizations
-}
-
-// analyzeCacheHitPatterns analyzes workflow run for cache usage patterns
-func analyzeCacheHitPatterns(run *gh.WorkflowRun) []models.CacheRecommendation {
-	var recommendations []models.CacheRecommendation
-
-	// Map for tracking cache paths that have already been added
-	addedPaths := make(map[string]bool)
-
-	// Check workflow event type
-	event := run.GetEvent()
-	if event == "push" || event == "pull_request" {
-		// Go-specific cache recommendations
-		cacheRecommendations := []models.CacheRecommendation{
-			{
-				Path:        "~/.cache/go-build",
-				Description: "Cache Go build artifacts",
-				Impact:      "Can reduce build time by up to 30%",
-			},
-			{
-				Path:        "~/go/pkg/mod",
-				Description: "Cache Go modules",
-				Impact:      "Can reduce dependency download time significantly",
-			},
-		}
-
-		// Add while deduplication
-		for _, rec := range cacheRecommendations {
-			if !addedPaths[rec.Path] {
-				recommendations = append(recommendations, rec)
-				addedPaths[rec.Path] = true
-			}
-		}
-	}
-
-	return recommendations
 }

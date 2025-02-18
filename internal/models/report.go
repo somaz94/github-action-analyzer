@@ -18,6 +18,7 @@ type CacheRecommendation struct {
 	Path        string `json:"path"`
 	Description string `json:"description"`
 	Impact      string `json:"impact"`
+	Example     string `json:"example"`
 }
 
 type DockerOptimization struct {
@@ -66,10 +67,14 @@ func (r *PerformanceReport) Output() error {
 		summary += "─────────────────────────\n"
 		for _, cache := range r.CacheRecommendations {
 			summary += fmt.Sprintf("  • %s\n", cache.Path)
-			summary += fmt.Sprintf("    ↳ %s\n", cache.Description)
+			summary += fmt.Sprintf("    ↳ What: %s\n", cache.Description)
 			summary += fmt.Sprintf("    ↳ Impact: %s\n", cache.Impact)
+			if cache.Example != "" {
+				summary += "    ↳ Example:\n"
+				summary += fmt.Sprintf("      ```yaml\n%s\n      ```\n", cache.Example)
+			}
+			summary += "\n"
 		}
-		summary += "\n"
 	}
 
 	if len(r.DockerOptimizations) > 0 {
