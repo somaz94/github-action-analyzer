@@ -89,7 +89,9 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
 			Example: `      - name: Cache Go modules
         uses: actions/cache@v4
         with:
-          path: ~/go/pkg/mod
+          path: |
+		    ~/go/pkg/mod
+			~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-`,
@@ -218,13 +220,19 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, repor
 
 	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, workflowPath)
 	if err == nil {
+		// 디버깅을 위한 로그 추가
+		fmt.Printf("Workflow content:\n%s\n", workflowContent)
+
 		detectedLangs := detectLanguagesFromWorkflow(workflowContent)
+		fmt.Printf("Detected languages: %v\n", detectedLangs)
 
 		for _, lang := range detectedLangs {
 			latestVersion, err := a.versionChecker.GetLatestVersion(lang)
 			if err != nil {
+				fmt.Printf("Error getting latest version for %s: %v\n", lang, err)
 				continue
 			}
+			fmt.Printf("Latest version for %s: %s\n", lang, latestVersion)
 
 			if strategies, ok := cacheStrategies[lang]; ok {
 				for _, strategy := range strategies {
@@ -234,6 +242,8 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, repor
 				}
 			}
 		}
+	} else {
+		fmt.Printf("Error getting workflow content: %v\n", err)
 	}
 
 	return nil
@@ -316,6 +326,7 @@ func detectLanguagesFromWorkflow(content string) []string {
 			"setup-go",
 			"actions/setup-go",
 			"go-version",
+			"uses: actions/setup-go",
 		},
 		"node": {
 			"npm",
@@ -324,6 +335,7 @@ func detectLanguagesFromWorkflow(content string) []string {
 			"actions/setup-node",
 			"package.json",
 			"node-version",
+			"uses: actions/setup-node",
 		},
 		"python": {
 			"pip",
@@ -332,22 +344,28 @@ func detectLanguagesFromWorkflow(content string) []string {
 			"actions/setup-python",
 			"requirements.txt",
 			"python-version",
+			"uses: actions/setup-python",
 		},
 	}
 
 	// Convert content to lowercase for case-insensitive matching
-	content = strings.ToLower(content)
+	lowerContent := strings.ToLower(content)
+	fmt.Printf("Checking patterns in content:\n%s\n", lowerContent)
 
 	for lang, patterns := range languagePatterns {
 		for _, pattern := range patterns {
-			if strings.Contains(strings.ToLower(content), strings.ToLower(pattern)) {
+			lowerPattern := strings.ToLower(pattern)
+			if strings.Contains(lowerContent, lowerPattern) {
+				fmt.Printf("Found pattern '%s' for language '%s'\n", pattern, lang)
 				languages = append(languages, lang)
 				break
 			}
 		}
 	}
 
-	return unique(languages)
+	uniqueLangs := unique(languages)
+	fmt.Printf("Final detected languages: %v\n", uniqueLangs)
+	return uniqueLangs
 }
 
 // unique removes duplicate entries from a string slice
