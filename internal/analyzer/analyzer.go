@@ -206,6 +206,13 @@ func (a *Analyzer) Analyze(ctx context.Context, owner, repo, workflowFile string
 		return nil, err
 	}
 
+	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, workflowFile)
+	if err == nil {
+		if err := a.analyzeWorkflowStructure(workflowContent, report); err != nil {
+			return nil, err
+		}
+	}
+
 	a.generateCostSavingTips(report)
 
 	return report, nil
@@ -431,4 +438,47 @@ func unique(slice []string) []string {
 // Escape GitHub expression in example strings
 func escapeGitHubExpression(example string) string {
 	return strings.ReplaceAll(example, "${{", "\\${\\{")
+}
+
+// analyzeWorkflowStructure analyzes the workflow structure and patterns
+func (a *Analyzer) analyzeWorkflowStructure(content string, report *models.PerformanceReport) error {
+	analysis := &models.WorkflowAnalysis{
+		Recommendations:     make([]string, 0),
+		RunnerOptimizations: make([]string, 0),
+		SecurityTips:        make([]string, 0),
+	}
+
+	// Check for matrix strategy
+	if !strings.Contains(content, "strategy:") || !strings.Contains(content, "matrix:") {
+		analysis.Recommendations = append(analysis.Recommendations,
+			"Consider using matrix strategy for parallel testing/building across different versions/platforms")
+	}
+
+	// Check for job dependencies
+	if strings.Contains(content, "needs:") {
+		analysis.ParallelJobs = true
+		analysis.Recommendations = append(analysis.Recommendations,
+			"Review job dependencies to ensure optimal parallel execution")
+	}
+
+	// Analyze runners
+	if strings.Contains(content, "runs-on: ubuntu-latest") {
+		analysis.RunnerOptimizations = append(analysis.RunnerOptimizations,
+			"Consider using specific Ubuntu version instead of 'latest' for better reproducibility")
+	}
+
+	// Security checks
+	if !strings.Contains(content, "permissions:") {
+		analysis.SecurityTips = append(analysis.SecurityTips,
+			"Add explicit permissions to improve workflow security")
+	}
+
+	// Check environment usage
+	if !strings.Contains(content, "environment:") {
+		analysis.SecurityTips = append(analysis.SecurityTips,
+			"Consider using environments for better secret management and deployment control")
+	}
+
+	report.WorkflowAnalysis = analysis
+	return nil
 }

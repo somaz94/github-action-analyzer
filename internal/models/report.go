@@ -36,6 +36,7 @@ type PerformanceReport struct {
 	CacheRecommendations []CacheRecommendation `json:"cache_recommendations"`
 	DockerOptimizations  []DockerOptimization  `json:"docker_optimizations"`
 	CostSavingTips       []string              `json:"cost_saving_tips"`
+	WorkflowAnalysis     *WorkflowAnalysis     `json:"workflow_analysis"`
 }
 
 func (r *PerformanceReport) Output() error {
@@ -96,6 +97,35 @@ func (r *PerformanceReport) Output() error {
 			summary += fmt.Sprintf("  • %s\n", tip)
 		}
 		summary += "\n"
+	}
+
+	if r.WorkflowAnalysis != nil {
+		summary += "⚙️ Workflow Structure Analysis\n"
+		summary += "────────────────────────────\n"
+
+		if len(r.WorkflowAnalysis.Recommendations) > 0 {
+			summary += "  📝 General Recommendations:\n"
+			for _, rec := range r.WorkflowAnalysis.Recommendations {
+				summary += fmt.Sprintf("    • %s\n", rec)
+			}
+			summary += "\n"
+		}
+
+		if len(r.WorkflowAnalysis.RunnerOptimizations) > 0 {
+			summary += "  🏃 Runner Optimizations:\n"
+			for _, opt := range r.WorkflowAnalysis.RunnerOptimizations {
+				summary += fmt.Sprintf("    • %s\n", opt)
+			}
+			summary += "\n"
+		}
+
+		if len(r.WorkflowAnalysis.SecurityTips) > 0 {
+			summary += "  🔒 Security Recommendations:\n"
+			for _, tip := range r.WorkflowAnalysis.SecurityTips {
+				summary += fmt.Sprintf("    • %s\n", tip)
+			}
+			summary += "\n"
+		}
 	}
 
 	summary += "╭──────────────────────────────────────────────╮\n"
