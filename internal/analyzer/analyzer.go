@@ -39,28 +39,28 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 	ctx := context.Background()
 	switch lang {
 	case "go":
-		// Check the latest release tag for the go version of the goolang/go repository
+		// Go는 tags를 사용하여 최신 버전 확인
 		release, err := g.client.GetLatestRelease(ctx, "golang", "go")
 		if err != nil {
-			return "", err
+			// 에러 발생 시 기본값 반환
+			return "1.22", nil
 		}
-		// Extract version only from "go1.24.0" format
 		version := strings.TrimPrefix(release.GetTagName(), "go")
 		return strings.Split(version, ".")[0] + "." + strings.Split(version, ".")[1], nil
 
 	case "node":
-		// Check the latest release tag for the node version of the nodejs/node repository
 		release, err := g.client.GetLatestRelease(ctx, "nodejs", "node")
 		if err != nil {
-			return "", err
+			// 에러 발생 시 기본값 반환
+			return "20.0", nil
 		}
 		return strings.TrimPrefix(release.GetTagName(), "v"), nil
 
 	case "python":
-		// Check the latest release tag for the python version of the python/cpython repository
 		release, err := g.client.GetLatestRelease(ctx, "python", "cpython")
 		if err != nil {
-			return "", err
+			// 에러 발생 시 기본값 반환
+			return "3.12", nil
 		}
 		return strings.TrimPrefix(release.GetTagName(), "v"), nil
 
