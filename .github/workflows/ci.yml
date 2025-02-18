@@ -70,3 +70,19 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_file: test-workflow.yml
           repository: ${{ github.repository }}
+
+  analyze-target:
+    name: Analyze Target Workflow
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        id: analyzer
+        uses: ./
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow_file: ci.yml
+          repository: somaz94/compress-decompress
