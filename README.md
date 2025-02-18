@@ -18,7 +18,7 @@ The **GitHub Action Analyzer** is a GitHub Action that analyzes your workflow pe
 | `github_token` | Yes      | GitHub token for API access                    | -       | `${{ secrets.GITHUB_TOKEN }}` |
 | `workflow_file`| Yes      | Name of the workflow file to analyze          | -       | `"ci.yml"`            |
 | `repository`   | Yes      | Repository in owner/repo format               | -       | `"owner/repo"`        |
-
+| `debug`        | No       | Enable debug mode                             | `false`   | `true`                 |
 <br/>
 
 ## Example Usage

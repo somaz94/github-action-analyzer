@@ -62,6 +62,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_file: test-languages-workflow.yml
           repository: ${{ github.repository }}
+          debug: true
 
   analyze-target-workflow:
     name: Analyze Target Workflow

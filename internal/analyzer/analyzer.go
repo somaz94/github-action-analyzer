@@ -14,6 +14,7 @@ import (
 type Analyzer struct {
 	client         GithubClient
 	versionChecker VersionChecker
+	debug          bool
 }
 
 // GithubClient interface defines methods for interacting with GitHub API
@@ -43,26 +44,40 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 		release, err := g.client.GetLatestRelease(ctx, "golang", "go")
 		if err != nil {
 			// 에러 발생 시 기본값 반환
-			return "1.22", nil
+			return "1.22", nil // 현재 최신 안정 버전
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "go")
-		return strings.Split(version, ".")[0] + "." + strings.Split(version, ".")[1], nil
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			return parts[0] + "." + parts[1], nil
+		}
+		return "1.22", nil
 
 	case "node":
 		release, err := g.client.GetLatestRelease(ctx, "nodejs", "node")
 		if err != nil {
-			// 에러 발생 시 기본값 반환
-			return "20.0", nil
+			// Node.js LTS 버전 반환
+			return "20.11", nil // 현재 LTS 버전
 		}
-		return strings.TrimPrefix(release.GetTagName(), "v"), nil
+		version := strings.TrimPrefix(release.GetTagName(), "v")
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			return parts[0] + "." + parts[1], nil
+		}
+		return "20.11", nil
 
 	case "python":
 		release, err := g.client.GetLatestRelease(ctx, "python", "cpython")
 		if err != nil {
-			// 에러 발생 시 기본값 반환
-			return "3.12", nil
+			// Python 최신 안정 버전 반환
+			return "3.12", nil // 현재 최신 안정 버전
 		}
-		return strings.TrimPrefix(release.GetTagName(), "v"), nil
+		version := strings.TrimPrefix(release.GetTagName(), "v")
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			return parts[0] + "." + parts[1], nil
+		}
+		return "3.12", nil
 
 	default:
 		return "", fmt.Errorf("unsupported language: %s", lang)
@@ -127,10 +142,18 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
 }
 
 // NewAnalyzer creates a new instance of Analyzer
-func NewAnalyzer(client GithubClient) *Analyzer {
+func NewAnalyzer(client GithubClient, debug bool) *Analyzer {
 	return &Analyzer{
 		client:         client,
 		versionChecker: &GitHubVersionChecker{client: client},
+		debug:          debug,
+	}
+}
+
+// debugLog prints debug information if debug mode is enabled
+func (a *Analyzer) debugLog(format string, args ...interface{}) {
+	if a.debug {
+		fmt.Printf(format+"\n", args...)
 	}
 }
 
@@ -220,19 +243,19 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, repor
 
 	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, workflowPath)
 	if err == nil {
-		// 디버깅을 위한 로그 추가
-		fmt.Printf("Workflow content:\n%s\n", workflowContent)
+		// Debug logging
+		a.debugLog("Workflow content:\n%s", workflowContent)
 
 		detectedLangs := detectLanguagesFromWorkflow(workflowContent)
-		fmt.Printf("Detected languages: %v\n", detectedLangs)
+		a.debugLog("Detected languages: %v", detectedLangs)
 
 		for _, lang := range detectedLangs {
 			latestVersion, err := a.versionChecker.GetLatestVersion(lang)
 			if err != nil {
-				fmt.Printf("Error getting latest version for %s: %v\n", lang, err)
+				a.debugLog("Error getting latest version for %s: %v", lang, err)
 				continue
 			}
-			fmt.Printf("Latest version for %s: %s\n", lang, latestVersion)
+			a.debugLog("Latest version for %s: %s", lang, latestVersion)
 
 			if strategies, ok := cacheStrategies[lang]; ok {
 				for _, strategy := range strategies {
@@ -243,7 +266,7 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, repor
 			}
 		}
 	} else {
-		fmt.Printf("Error getting workflow content: %v\n", err)
+		a.debugLog("Error getting workflow content: %v", err)
 	}
 
 	return nil
@@ -348,24 +371,19 @@ func detectLanguagesFromWorkflow(content string) []string {
 		},
 	}
 
-	// Convert content to lowercase for case-insensitive matching
 	lowerContent := strings.ToLower(content)
-	fmt.Printf("Checking patterns in content:\n%s\n", lowerContent)
 
 	for lang, patterns := range languagePatterns {
 		for _, pattern := range patterns {
 			lowerPattern := strings.ToLower(pattern)
 			if strings.Contains(lowerContent, lowerPattern) {
-				fmt.Printf("Found pattern '%s' for language '%s'\n", pattern, lang)
 				languages = append(languages, lang)
 				break
 			}
 		}
 	}
 
-	uniqueLangs := unique(languages)
-	fmt.Printf("Final detected languages: %v\n", uniqueLangs)
-	return uniqueLangs
+	return unique(languages)
 }
 
 // unique removes duplicate entries from a string slice

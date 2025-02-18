@@ -33,7 +33,8 @@ func main() {
 	client := github.NewClient(token)
 
 	// Create analyzer
-	analyzer := analyzer.NewAnalyzer(client)
+	debug := os.Getenv("DEBUG") == "true"
+	analyzer := analyzer.NewAnalyzer(client, debug)
 
 	// Run analysis
 	report, err := analyzer.Analyze(ctx, owner, repo, workflowFile)

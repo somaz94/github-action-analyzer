@@ -12,6 +12,9 @@ inputs:
   repository:
     description: 'Repository to analyze (format: owner/repo)'
     required: true
+  debug:
+    description: 'Enable debug mode'
+    required: false
 
 runs:
   using: 'docker'
@@ -20,7 +23,7 @@ runs:
     GITHUB_TOKEN: ${{ inputs.github_token }}
     WORKFLOW_FILE: ${{ inputs.workflow_file }}
     REPOSITORY: ${{ inputs.repository }}
-
+    DEBUG: ${{ inputs.debug }}
 branding:
   icon: 'activity'
   color: 'blue'
