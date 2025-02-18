@@ -40,11 +40,11 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 	ctx := context.Background()
 	switch lang {
 	case "go":
-		// Go는 tags를 사용하여 최신 버전 확인
-		release, err := g.client.GetLatestRelease(ctx, "golang", "go")
+		// Go는 golang/go 대신 golang/golang 레포지토리 사용
+		release, err := g.client.GetLatestRelease(ctx, "golang", "golang")
 		if err != nil {
 			// 에러 발생 시 기본값 반환
-			return "1.22", nil // 현재 최신 안정 버전
+			return "1.22", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "go")
 		parts := strings.Split(version, ".")
@@ -56,8 +56,7 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 	case "node":
 		release, err := g.client.GetLatestRelease(ctx, "nodejs", "node")
 		if err != nil {
-			// Node.js LTS 버전 반환
-			return "20.11", nil // 현재 LTS 버전
+			return "20.11", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "v")
 		parts := strings.Split(version, ".")
@@ -67,10 +66,9 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 		return "20.11", nil
 
 	case "python":
-		release, err := g.client.GetLatestRelease(ctx, "python", "cpython")
+		release, err := g.client.GetLatestRelease(ctx, "python", "python") // cpython 대신 python 사용
 		if err != nil {
-			// Python 최신 안정 버전 반환
-			return "3.12", nil // 현재 최신 안정 버전
+			return "3.12", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "v")
 		parts := strings.Split(version, ".")
