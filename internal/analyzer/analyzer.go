@@ -86,6 +86,46 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 		}
 		return "3.12", nil
 
+	case "java":
+		release, err := g.client.GetLatestRelease(ctx, "adoptium", "temurin")
+		if err != nil {
+			return "17", nil
+		}
+		version := strings.TrimPrefix(release.GetTagName(), "jdk-")
+		parts := strings.Split(version, ".")
+		if len(parts) >= 1 {
+			return parts[0], nil
+		}
+		return "17", nil
+
+	case "ruby":
+		release, err := g.client.GetLatestRelease(ctx, "ruby", "ruby")
+		if err != nil {
+			return "3.2", nil
+		}
+		version := strings.TrimPrefix(release.GetTagName(), "v")
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			return parts[0] + "." + parts[1], nil
+		}
+		return "3.2", nil
+
+	case "rust":
+		// Rust uses a different versioning system, returning latest stable
+		return "stable", nil
+
+	case "dotnet":
+		release, err := g.client.GetLatestRelease(ctx, "dotnet", "core")
+		if err != nil {
+			return "7.0", nil
+		}
+		version := strings.TrimPrefix(release.GetTagName(), "v")
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			return parts[0] + "." + parts[1], nil
+		}
+		return "7.0", nil
+
 	default:
 		return "", fmt.Errorf("unsupported language: %s", lang)
 	}
@@ -162,6 +202,107 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
           key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-python-`,
+		},
+	},
+	"java": {
+		{
+			Path:        "~/.m2/repository",
+			Description: "Cache Maven dependencies",
+			Impact:      "Can significantly reduce build time by caching Maven dependencies",
+			Example: `      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '%s'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-`,
+		},
+		{
+			Path:        "~/.gradle",
+			Description: "Cache Gradle dependencies and wrapper",
+			Impact:      "Can significantly reduce build time by caching Gradle dependencies",
+			Example: `      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '%s'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-`,
+		},
+	},
+	"ruby": {
+		{
+			Path:        "vendor/bundle",
+			Description: "Cache Ruby gems using Bundler",
+			Impact:      "Can reduce gem installation time significantly",
+			Example: `      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '%s'
+          bundler-cache: true  # This handles caching automatically`,
+		},
+	},
+	"rust": {
+		{
+			Path:        "~/.cargo",
+			Description: "Cache Rust dependencies and build artifacts",
+			Impact:      "Can significantly reduce build time by caching Cargo dependencies and compiled artifacts",
+			Example: `      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '%s'
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}`,
+		},
+	},
+	"dotnet": {
+		{
+			Path:        ".dotnet",
+			Description: "Cache .NET SDK installation",
+			Impact:      "Can significantly reduce setup time by caching the .NET SDK",
+			Example: `      - name: Cache .NET SDK
+        uses: actions/cache@v4
+        with:
+          path: .\.dotnet
+          key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '%s'
+          cache: true
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-`,
 		},
 	},
 }
@@ -405,6 +546,44 @@ func detectLanguagesFromWorkflow(content string) []string {
 			"python-version",
 			"uses: actions/setup-python",
 		},
+		"java": {
+			"mvn",
+			"maven",
+			"gradle",
+			"setup-java",
+			"actions/setup-java",
+			"pom.xml",
+			"build.gradle",
+			"java-version",
+			"uses: actions/setup-java",
+		},
+		"ruby": {
+			"bundle",
+			"gem",
+			"setup-ruby",
+			"ruby/setup-ruby",
+			"Gemfile",
+			"ruby-version",
+			"uses: ruby/setup-ruby",
+		},
+		"rust": {
+			"cargo",
+			"rustc",
+			"rust-toolchain",
+			"dtolnay/rust-toolchain",
+			"Cargo.toml",
+			"uses: dtolnay/rust-toolchain",
+		},
+		"dotnet": {
+			"dotnet",
+			"setup-dotnet",
+			"actions/setup-dotnet",
+			".csproj",
+			".sln",
+			"nuget",
+			"dotnet-version",
+			"uses: actions/setup-dotnet",
+		},
 	}
 
 	lowerContent := strings.ToLower(content)
@@ -435,10 +614,11 @@ func unique(slice []string) []string {
 	return list
 }
 
-// Escape GitHub expression in example strings
-func escapeGitHubExpression(example string) string {
-	return strings.ReplaceAll(example, "${{", "\\${\\{")
-}
+// // TODO: This function will be used in future for escaping GitHub expressions in example strings
+// // Currently unused but kept for future implementation
+// func _escapeGitHubExpression(example string) string {
+// 	return strings.ReplaceAll(example, "${{", "\\${\\{")
+// }
 
 // analyzeWorkflowStructure analyzes the workflow structure and patterns
 func (a *Analyzer) analyzeWorkflowStructure(content string, report *models.PerformanceReport) error {
