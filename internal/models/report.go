@@ -37,49 +37,125 @@ type PerformanceReport struct {
 }
 
 func (r *PerformanceReport) Output() error {
-	// Create summary output
+	// Create summary output with better formatting
 	summary := fmt.Sprintf(`
-📊 Workflow Analysis Report
-Repository: %s
-Workflow: %s
-Total Execution Time: %v
+╭──────────────────────────────────────────────╮
+│           Workflow Analysis Report            │
+╰──────────────────────────────────────────────╯
 
-🐌 Slow Steps:
+📋 Overview
+• Repository: %s
+• Workflow: %s
+• Total Execution Time: %v
+
 `, r.Repository, r.WorkflowFile, r.TotalExecutionTime)
 
-	for _, step := range r.SlowSteps {
-		summary += fmt.Sprintf("- %s (%v)\n", step.Name, step.ExecutionTime)
-		for _, rec := range step.Recommendations {
-			summary += fmt.Sprintf("  ↳ %s\n", rec)
+	if len(r.SlowSteps) > 0 {
+		summary += "🐌 Slow Steps Detected\n"
+		summary += "──────────────────────\n"
+		for _, step := range r.SlowSteps {
+			summary += fmt.Sprintf("  • %s\n", step.Name)
+			summary += fmt.Sprintf("    ↳ Duration: %v\n", step.ExecutionTime)
+			for _, rec := range step.Recommendations {
+				summary += fmt.Sprintf("    ↳ Tip: %s\n", rec)
+			}
+			summary += "\n"
 		}
 	}
 
-	summary += "\n🔄 Cache Recommendations:\n"
-	for _, cache := range r.CacheRecommendations {
-		summary += fmt.Sprintf("- %s: %s\n", cache.Path, cache.Description)
+	if len(r.CacheRecommendations) > 0 {
+		summary += "🔄 Cache Optimization Tips\n"
+		summary += "─────────────────────────\n"
+		for _, cache := range r.CacheRecommendations {
+			summary += fmt.Sprintf("  • Path: %s\n", cache.Path)
+			summary += fmt.Sprintf("    ↳ What: %s\n", cache.Description)
+			summary += fmt.Sprintf("    ↳ Impact: %s\n", cache.Impact)
+			summary += "\n"
+		}
 	}
 
-	summary += "\n🐳 Docker Optimizations:\n"
-	for _, docker := range r.DockerOptimizations {
-		summary += fmt.Sprintf("- %s\n  Solution: %s\n", docker.Issue, docker.Suggestion)
+	if len(r.DockerOptimizations) > 0 {
+		summary += "🐳 Docker Optimization Tips\n"
+		summary += "──────────────────────────\n"
+		for _, docker := range r.DockerOptimizations {
+			summary += fmt.Sprintf("  • Issue: %s\n", docker.Issue)
+			summary += fmt.Sprintf("    ↳ Solution: %s\n", docker.Suggestion)
+			summary += fmt.Sprintf("    ↳ Expected Improvement: %s\n", docker.Improvement)
+			summary += "\n"
+		}
 	}
 
-	summary += "\n💰 Cost Saving Tips:\n"
-	for _, tip := range r.CostSavingTips {
-		summary += fmt.Sprintf("- %s\n", tip)
+	if len(r.CostSavingTips) > 0 {
+		summary += "💰 Cost Saving Opportunities\n"
+		summary += "──────────────────────────\n"
+		for _, tip := range r.CostSavingTips {
+			summary += fmt.Sprintf("  • %s\n", tip)
+		}
+		summary += "\n"
 	}
+
+	summary += "╭──────────────────────────────────────────────╮\n"
+	summary += "│            End of Analysis Report            │\n"
+	summary += "╰──────────────────────────────────────────────╯\n"
 
 	// Write to GitHub Actions output
 	fmt.Println(summary)
 
-	// Create JSON report file
-	jsonReport, err := json.MarshalIndent(r, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal report: %v", err)
+	// Set GitHub Actions outputs
+	if err := r.setGitHubOutputs(); err != nil {
+		return fmt.Errorf("failed to set GitHub outputs: %v", err)
 	}
 
-	if err := os.WriteFile("workflow-analysis.json", jsonReport, 0644); err != nil {
-		return fmt.Errorf("failed to write report file: %v", err)
+	return nil
+}
+
+func (r *PerformanceReport) setGitHubOutputs() error {
+	// Convert report sections to JSON strings
+	performanceSummary, err := json.Marshal(map[string]interface{}{
+		"repository":       r.Repository,
+		"workflow_file":    r.WorkflowFile,
+		"total_execution":  r.TotalExecutionTime.String(),
+		"slow_steps_count": len(r.SlowSteps),
+	})
+	if err != nil {
+		return err
+	}
+
+	cacheRecs, err := json.Marshal(r.CacheRecommendations)
+	if err != nil {
+		return err
+	}
+
+	dockerOpts, err := json.Marshal(r.DockerOptimizations)
+	if err != nil {
+		return err
+	}
+
+	// Get GITHUB_OUTPUT environment variable
+	outputFile := os.Getenv("GITHUB_OUTPUT")
+	if outputFile == "" {
+		return fmt.Errorf("GITHUB_OUTPUT environment variable not set")
+	}
+
+	// Open the file in append mode
+	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %v", err)
+	}
+	defer f.Close()
+
+	// Write outputs to the file
+	if _, err := fmt.Fprintf(f, "performance_summary=%s\n", performanceSummary); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(f, "cache_recommendations=%s\n", cacheRecs); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(f, "docker_optimizations=%s\n", dockerOpts); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(f, "status=success\n"); err != nil {
+		return err
 	}
 
 	return nil

@@ -11,6 +11,18 @@ inputs:
     description: 'Repository to analyze (format: owner/repo)'
     required: true
 
+outputs:
+  performance_summary:
+    description: 'Summary of workflow performance analysis'
+  cache_recommendations:
+    description: 'Suggested caching strategies'
+  docker_optimizations:
+    description: 'Docker optimization recommendations'
+  status:
+    description: 'Analysis status (success/failure)'
+  error_message:
+    description: 'Error message if analysis fails'
+
 runs:
   using: 'docker'
   image: 'Dockerfile'
