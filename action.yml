@@ -1,5 +1,7 @@
 name: 'GitHub Actions Analyzer'
+
 description: 'Analyzes GitHub Actions workflow performance and provides optimization recommendations'
+
 inputs:
   github_token:
     description: 'GitHub token for API access'
@@ -11,16 +13,6 @@ inputs:
     description: 'Repository to analyze (format: owner/repo)'
     required: true
 
-outputs:
-  performance_summary:
-    description: 'Summary of workflow performance analysis'
-  cache_recommendations:
-    description: 'Suggested caching strategies'
-  docker_optimizations:
-    description: 'Docker optimization recommendations'
-  status:
-    description: 'Analysis status (success/failure)'
-
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -28,3 +20,7 @@ runs:
     GITHUB_TOKEN: ${{ inputs.github_token }}
     WORKFLOW_FILE: ${{ inputs.workflow_file }}
     REPOSITORY: ${{ inputs.repository }}
+
+branding:
+  icon: 'activity'
+  color: 'blue'

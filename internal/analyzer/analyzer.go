@@ -330,29 +330,61 @@ func generateVersionUpdateExample(lang string) string {
 	}
 }
 
-// Analyzer 구조체의 analyzeCaching 메서드도 수정
 func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
-	// 중복 제거를 위한 맵
-	uniqueRecommendations := make(map[string]models.CacheRecommendation)
-
-	for _, run := range runs {
-		recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
-		if err != nil {
-			return err
-		}
-
-		// 중복 제거하면서 추가
-		for _, rec := range recommendations {
-			uniqueRecommendations[rec.Path+rec.Description] = rec
-		}
-	}
-
-	// 중복 제거된 추천사항만 추가
-	for _, rec := range uniqueRecommendations {
+	// Add Default GitHub Actions Cache Recommendations
+	for _, rec := range actionsCacheStrategies {
 		report.CacheRecommendations = append(report.CacheRecommendations, rec)
 	}
 
+	// Import workflow file contents
+	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, report.WorkflowFile)
+	if err != nil {
+		return fmt.Errorf("failed to get workflow content: %v", err)
+	}
+
+	// 워크플로우 파일에서 사용된 언어 감지
+	detectedLangs := detectLanguagesFromWorkflow(workflowContent)
+
+	// Language detected used in workflow files
+	for _, lang := range detectedLangs {
+		if strategies, ok := cacheStrategies[lang]; ok {
+			report.CacheRecommendations = append(report.CacheRecommendations, strategies...)
+		}
+	}
+
+	// Additional analysis if you have a running history
+	if len(runs) > 0 {
+		for _, run := range runs {
+			recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
+			if err != nil {
+				return err
+			}
+			report.CacheRecommendations = append(report.CacheRecommendations, recommendations...)
+		}
+	}
+
 	return nil
+}
+
+// Language detected used in workflow files
+func detectLanguagesFromWorkflow(content string) []string {
+	var languages []string
+	languageKeywords := map[string][]string{
+		"go":     {"go build", "go test", "setup-go", "actions/setup-go"},
+		"node":   {"npm", "yarn", "setup-node", "actions/setup-node"},
+		"python": {"pip", "python", "setup-python", "actions/setup-python"},
+	}
+
+	for lang, keywords := range languageKeywords {
+		for _, keyword := range keywords {
+			if strings.Contains(content, keyword) {
+				languages = append(languages, lang)
+				break
+			}
+		}
+	}
+
+	return unique(languages)
 }
 
 func (a *Analyzer) generateCostSavingTips(report *models.PerformanceReport) {

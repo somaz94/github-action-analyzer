@@ -21,17 +21,6 @@ The **GitHub Action Analyzer** is a GitHub Action that analyzes your workflow pe
 
 <br/>
 
-## Outputs
-
-| Output                  | Description                                          | Example        |
-|------------------------|------------------------------------------------------|----------------|
-| `performance_summary`  | Summary of workflow performance analysis             | JSON string    |
-| `cache_recommendations`| Suggested caching strategies                         | JSON string    |
-| `docker_optimizations` | Docker optimization recommendations                  | JSON string    |
-| `status`              | Analysis status                                      | `"success"`    |
-
-<br/>
-
 ## Example Usage
 
 ```yaml
@@ -51,12 +40,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_file: ci.yml
           repository: ${{ github.repository }}
-
-      - name: Display Analysis Results
-        run: |
-          echo "Performance Summary: ${{ steps.analyze.outputs.performance_summary }}"
-          echo "Cache Recommendations: ${{ steps.analyze.outputs.cache_recommendations }}"
-          echo "Docker Optimizations: ${{ steps.analyze.outputs.docker_optimizations }}"
 ```
 
 <br/>

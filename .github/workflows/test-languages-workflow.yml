@@ -1,0 +1,65 @@
+name: Test Languages Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-go:
+    name: Test Go Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'  # 의도적으로 이전 버전 사용
+
+      - name: Go Build (캐시 미사용)
+        run: |
+          rm -rf ~/.cache/go-build
+          go build ./...
+
+      - name: Go Test
+        run: go test ./...
+
+  test-node:
+    name: Test Node.js Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # 의도적으로 이전 버전 사용
+
+      - name: NPM Install (캐시 미사용)
+        run: |
+          rm -rf ~/.npm
+          npm install
+
+      - name: NPM Build
+        run: npm run build
+
+  test-python:
+    name: Test Python Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'  # 의도적으로 이전 버전 사용
+
+      - name: Install Dependencies (캐시 미사용)
+        run: |
+          rm -rf ~/.cache/pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: python -m pytest

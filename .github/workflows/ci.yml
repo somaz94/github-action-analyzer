@@ -51,10 +51,10 @@ jobs:
 
       - name: Display Analysis Results
         run: |
-          echo "${{ steps.analyzer.outputs.performance_summary }}"
-          echo "${{ steps.analyzer.outputs.cache_recommendations }}"
-          echo "${{ steps.analyzer.outputs.docker_optimizations }}"
-          echo "${{ steps.analyzer.outputs.status }}"
+          echo "Performance Summary: ${{ steps.analyzer.outputs.performance_summary }}"
+          echo "Cache Recommendations: ${{ steps.analyzer.outputs.cache_recommendations }}"
+          echo "Docker Optimizations: ${{ steps.analyzer.outputs.docker_optimizations }}"
+          echo "Status: ${{ steps.analyzer.outputs.status }}"
 
   analyze-test-workflow:
     name: Analyze Test Workflow
@@ -68,7 +68,7 @@ jobs:
         uses: ./
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow_file: test-workflow.yml
+          workflow_file: test-languages-workflow.yml
           repository: ${{ github.repository }}
 
   analyze-target:
