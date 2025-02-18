@@ -124,11 +124,24 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
 			Path:        "~/.npm",
 			Description: "Cache npm dependencies",
 			Impact:      "Can reduce npm install time by up to 50%",
-			Example: `      - name: Setup Node.js
+			Example: `      - name: Get npm cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '%s'
-          cache: 'npm'  # This enables npm cache`,
+          cache: 'npm'  # This enables npm cache
+
+      - uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-`,
 		},
 	},
 	"python": {
@@ -136,14 +149,24 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
 			Path:        "~/.cache/pip",
 			Description: "Cache pip dependencies",
 			Impact:      "Can reduce pip install time significantly",
-			Example: `      - name: Setup Python
+			Example: `      - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '%s'
-          cache: 'pip'  # This enables pip cache
+          cache: 'pip'
           cache-dependency-path: |
             **/requirements.txt
-            **/requirements-dev.txt`,
+            **/requirements-dev.txt
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-`,
 		},
 	},
 }
