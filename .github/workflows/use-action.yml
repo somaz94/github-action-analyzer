@@ -1,0 +1,59 @@
+name: Example Workflow using Go Git Commit Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'workflow run'
+        required: true
+        default: 'true'
+  workflow_run:
+    workflows: ["Generate changelog"] 
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    name: Analyze Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
+
+  analyze-languages-workflow:
+    name: Analyze Languages Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: test-languages-workflow.yml
+          repository: ${{ github.repository }}
+
+  analyze-target-workflow:
+    name: Analyze Target Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow_file: ci.yml
+          repository: somaz94/compress-decompress
