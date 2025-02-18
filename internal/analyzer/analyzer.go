@@ -63,6 +63,12 @@ func (a *Analyzer) analyzeWorkflowRuns(ctx context.Context, owner, repo string, 
 	var totalTime time.Duration
 
 	for _, githubRun := range runs {
+		// Calculate actual workflow run time
+		if githubRun.CreatedAt != nil && githubRun.UpdatedAt != nil {
+			runDuration := githubRun.UpdatedAt.Sub(githubRun.CreatedAt.Time)
+			totalTime += runDuration
+		}
+
 		run := models.NewWorkflowRunFromGitHub(githubRun)
 
 		// Get job logs
@@ -180,21 +186,33 @@ func analyzeDockerfile(content string) []models.DockerOptimization {
 func analyzeCacheHitPatterns(run *gh.WorkflowRun) []models.CacheRecommendation {
 	var recommendations []models.CacheRecommendation
 
+	// Map for tracking cache paths that have already been added
+	addedPaths := make(map[string]bool)
+
 	// Check workflow event type
 	event := run.GetEvent()
 	if event == "push" || event == "pull_request" {
-		// Add Go-specific cache recommendations
-		recommendations = append(recommendations, models.CacheRecommendation{
-			Path:        "~/.cache/go-build",
-			Description: "Cache Go build artifacts",
-			Impact:      "Can reduce build time by up to 30%",
-		})
+		// Go-specific cache recommendations
+		cacheRecommendations := []models.CacheRecommendation{
+			{
+				Path:        "~/.cache/go-build",
+				Description: "Cache Go build artifacts",
+				Impact:      "Can reduce build time by up to 30%",
+			},
+			{
+				Path:        "~/go/pkg/mod",
+				Description: "Cache Go modules",
+				Impact:      "Can reduce dependency download time significantly",
+			},
+		}
 
-		recommendations = append(recommendations, models.CacheRecommendation{
-			Path:        "~/go/pkg/mod",
-			Description: "Cache Go modules",
-			Impact:      "Can reduce dependency download time significantly",
-		})
+		// Add while deduplication
+		for _, rec := range cacheRecommendations {
+			if !addedPaths[rec.Path] {
+				recommendations = append(recommendations, rec)
+				addedPaths[rec.Path] = true
+			}
+		}
 	}
 
 	return recommendations
