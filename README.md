@@ -18,11 +18,13 @@ The **GitHub Action Analyzer** is a GitHub Action that analyzes your workflow pe
 | `github_token` | Yes      | GitHub token for API access                    | -       | `${{ secrets.GITHUB_TOKEN }}` |
 | `workflow_file`| Yes      | Name of the workflow file to analyze          | -       | `"ci.yml"`            |
 | `repository`   | Yes      | Repository in owner/repo format               | -       | `"owner/repo"`        |
-| `debug`        | No       | Enable debug mode                             | `false`   | `true`                 |
+| `debug`        | No       | Enable debug mode for detailed logging        | `false` | `true`                |
+
 <br/>
 
 ## Example Usage
 
+### Basic Usage
 ```yaml
 name: Analyze Workflow
 on: [push, workflow_dispatch]
@@ -41,6 +43,44 @@ jobs:
           workflow_file: ci.yml
           repository: ${{ github.repository }}
 ```
+
+### With Debug Mode
+```yaml
+name: Analyze Workflow with Debug
+on: [push, workflow_dispatch]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Analyze Workflow Performance
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
+          debug: true  # Enable debug mode for detailed logging
+```
+
+<br/>
+
+## Debug Mode
+
+When debug mode is enabled (`debug: true`), the analyzer will:
+- Display the full workflow file content being analyzed
+- Show detected programming languages
+- Log version detection attempts and results
+- Print detailed cache strategy recommendations
+- Output additional diagnostic information
+
+This is useful for:
+- Troubleshooting analysis issues
+- Verifying language detection
+- Checking version detection accuracy
+- Understanding the analyzer's decision process
 
 <br/>
 

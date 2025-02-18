@@ -40,18 +40,16 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 	ctx := context.Background()
 	switch lang {
 	case "go":
-		// Go는 golang/go 대신 golang/golang 레포지토리 사용
-		release, err := g.client.GetLatestRelease(ctx, "golang", "golang")
+		release, err := g.client.GetLatestRelease(ctx, "golang", "go")
 		if err != nil {
-			// 에러 발생 시 기본값 반환
-			return "1.22", nil
+			return "1.24", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "go")
 		parts := strings.Split(version, ".")
 		if len(parts) >= 2 {
 			return parts[0] + "." + parts[1], nil
 		}
-		return "1.22", nil
+		return "1.24", nil
 
 	case "node":
 		release, err := g.client.GetLatestRelease(ctx, "nodejs", "node")
@@ -66,11 +64,14 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 		return "20.11", nil
 
 	case "python":
-		release, err := g.client.GetLatestRelease(ctx, "python", "python") // cpython 대신 python 사용
+		release, err := g.client.GetLatestRelease(ctx, "python", "cpython")
 		if err != nil {
 			return "3.12", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "v")
+		if strings.Contains(version, "a") || strings.Contains(version, "b") || strings.Contains(version, "rc") {
+			return "3.12", nil
+		}
 		parts := strings.Split(version, ".")
 		if len(parts) >= 2 {
 			return parts[0] + "." + parts[1], nil
