@@ -63,9 +63,9 @@ jobs:
       # 의도적으로 중복된 의존성 설치
       - name: Redundant Dependencies
         run: |
-          npm install
-          npm install
-          npm install
+          go mod download
+          go mod download
+          go mod download
 
       # 의도적인 지연
       - name: Artificial Delay
