@@ -125,7 +125,7 @@ func (r *PerformanceReport) setGitHubOutputs() error {
 		return err
 	}
 
-	// 캐시 추천사항에서 GitHub Actions 표현식 이스케이프
+	// Escape GitHub expression in cache recommendations
 	for i := range r.CacheRecommendations {
 		r.CacheRecommendations[i].Example = strings.ReplaceAll(
 			r.CacheRecommendations[i].Example,
