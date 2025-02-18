@@ -306,18 +306,41 @@ func analyzeDockerfile(content string) []models.DockerOptimization {
 	return optimizations
 }
 
-// Detect languages used in the workflow file
+// detectLanguagesFromWorkflow detects programming languages used in workflow
 func detectLanguagesFromWorkflow(content string) []string {
 	var languages []string
 	languagePatterns := map[string][]string{
-		"go":     {"go build", "go test", "setup-go", "actions/setup-go"},
-		"node":   {"npm", "yarn", "setup-node", "actions/setup-node", "package.json"},
-		"python": {"pip", "python", "setup-python", "actions/setup-python", "requirements.txt"},
+		"go": {
+			"go build",
+			"go test",
+			"setup-go",
+			"actions/setup-go",
+			"go-version",
+		},
+		"node": {
+			"npm",
+			"yarn",
+			"setup-node",
+			"actions/setup-node",
+			"package.json",
+			"node-version",
+		},
+		"python": {
+			"pip",
+			"python",
+			"setup-python",
+			"actions/setup-python",
+			"requirements.txt",
+			"python-version",
+		},
 	}
+
+	// Convert content to lowercase for case-insensitive matching
+	content = strings.ToLower(content)
 
 	for lang, patterns := range languagePatterns {
 		for _, pattern := range patterns {
-			if strings.Contains(content, pattern) {
+			if strings.Contains(strings.ToLower(content), strings.ToLower(pattern)) {
 				languages = append(languages, lang)
 				break
 			}
