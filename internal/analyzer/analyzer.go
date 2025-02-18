@@ -3,6 +3,7 @@ package analyzer
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,8 +58,15 @@ func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
 			return "20.11", nil
 		}
 		version := strings.TrimPrefix(release.GetTagName(), "v")
+		if strings.Contains(version, "nightly") || strings.Contains(version, "test") {
+			return "20.11", nil
+		}
 		parts := strings.Split(version, ".")
 		if len(parts) >= 2 {
+			majorVer, _ := strconv.Atoi(parts[0])
+			if majorVer > 20 {
+				return "20.11", nil
+			}
 			return parts[0] + "." + parts[1], nil
 		}
 		return "20.11", nil
