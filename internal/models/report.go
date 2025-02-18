@@ -37,7 +37,6 @@ type PerformanceReport struct {
 }
 
 func (r *PerformanceReport) Output() error {
-	// Create summary output with better formatting
 	summary := fmt.Sprintf(`
 ╭──────────────────────────────────────────────╮
 │           Workflow Analysis Report            │
@@ -54,24 +53,23 @@ func (r *PerformanceReport) Output() error {
 		summary += "🐌 Slow Steps Detected\n"
 		summary += "──────────────────────\n"
 		for _, step := range r.SlowSteps {
-			summary += fmt.Sprintf("  • %s\n", step.Name)
-			summary += fmt.Sprintf("    ↳ Duration: %v\n", step.ExecutionTime)
+			summary += fmt.Sprintf("  • %s (Duration: %v)\n", step.Name, step.ExecutionTime)
 			for _, rec := range step.Recommendations {
-				summary += fmt.Sprintf("    ↳ Tip: %s\n", rec)
+				summary += fmt.Sprintf("    ↳ %s\n", rec)
 			}
-			summary += "\n"
 		}
+		summary += "\n"
 	}
 
 	if len(r.CacheRecommendations) > 0 {
 		summary += "🔄 Cache Optimization Tips\n"
 		summary += "─────────────────────────\n"
 		for _, cache := range r.CacheRecommendations {
-			summary += fmt.Sprintf("  • Path: %s\n", cache.Path)
-			summary += fmt.Sprintf("    ↳ What: %s\n", cache.Description)
+			summary += fmt.Sprintf("  • %s\n", cache.Path)
+			summary += fmt.Sprintf("    ↳ %s\n", cache.Description)
 			summary += fmt.Sprintf("    ↳ Impact: %s\n", cache.Impact)
-			summary += "\n"
 		}
+		summary += "\n"
 	}
 
 	if len(r.DockerOptimizations) > 0 {
