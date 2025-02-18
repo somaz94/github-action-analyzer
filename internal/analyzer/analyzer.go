@@ -290,7 +290,11 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, repor
 			if strategies, ok := cacheStrategies[lang]; ok {
 				for _, strategy := range strategies {
 					updatedStrategy := strategy
-					updatedStrategy.Example = fmt.Sprintf(strategy.Example, latestVersion)
+					if strings.Contains(strategy.Example, "%s") {
+						updatedStrategy.Example = fmt.Sprintf(strategy.Example, latestVersion)
+					} else {
+						updatedStrategy.Example = strategy.Example
+					}
 					report.CacheRecommendations = append(report.CacheRecommendations, updatedStrategy)
 				}
 			}
