@@ -13,18 +13,63 @@ import (
 )
 
 type Analyzer struct {
-	client GithubClient
+	client         GithubClient
+	versionChecker VersionChecker
 }
 
 type GithubClient interface {
 	GetWorkflowRuns(ctx context.Context, owner, repo, workflowFile string) ([]*gh.WorkflowRun, error)
 	GetWorkflowJobLogs(ctx context.Context, owner, repo string, runID int64) (string, error)
 	GetFileContent(ctx context.Context, owner, repo, path string) (string, error)
+	GetLatestRelease(ctx context.Context, owner, repo string) (*gh.RepositoryRelease, error)
+}
+
+type VersionChecker interface {
+	GetLatestVersion(lang string) (string, error)
+}
+
+type GitHubVersionChecker struct {
+	client GithubClient
+}
+
+func (g *GitHubVersionChecker) GetLatestVersion(lang string) (string, error) {
+	ctx := context.Background()
+	switch lang {
+	case "go":
+		// Go 버전은 golang/go 레포지토리의 최신 릴리스 태그 확인
+		release, err := g.client.GetLatestRelease(ctx, "golang", "go")
+		if err != nil {
+			return "", err
+		}
+		// "go1.24.0" 형식에서 버전만 추출
+		version := strings.TrimPrefix(release.GetTagName(), "go")
+		return strings.Split(version, ".")[0] + "." + strings.Split(version, ".")[1], nil
+
+	case "node":
+		// Node.js 버전은 nodejs/node 레포지토리 확인
+		release, err := g.client.GetLatestRelease(ctx, "nodejs", "node")
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimPrefix(release.GetTagName(), "v"), nil
+
+	case "python":
+		// Python 버전은 python/cpython 레포지토리 확인
+		release, err := g.client.GetLatestRelease(ctx, "python", "cpython")
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimPrefix(release.GetTagName(), "v"), nil
+
+	default:
+		return "", fmt.Errorf("unsupported language: %s", lang)
+	}
 }
 
 func NewAnalyzer(client GithubClient) *Analyzer {
 	return &Analyzer{
-		client: client,
+		client:         client,
+		versionChecker: &GitHubVersionChecker{client: client},
 	}
 }
 
@@ -110,7 +155,7 @@ func (a *Analyzer) analyzeDockerConfigs(ctx context.Context, owner, repo string,
 var (
 	// 최신 버전 정보
 	latestVersions = map[string]string{
-		"go":     "1.22",
+		"go":     "1.24",
 		"node":   "20",
 		"python": "3.12",
 	}
@@ -347,10 +392,25 @@ func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, runs 
 		// 워크플로우 파일에서 사용된 언어 감지
 		detectedLangs := detectLanguagesFromWorkflow(workflowContent)
 
-		// 감지된 언어별 캐시 전략 추가
+		// 감지된 언어별로 최신 버전 확인 및 캐시 전략 추가
 		for _, lang := range detectedLangs {
+			latestVersion, err := a.versionChecker.GetLatestVersion(lang)
+			if err != nil {
+				// 버전 확인 실패 시 기본 전략만 추가
+				if strategies, ok := cacheStrategies[lang]; ok {
+					report.CacheRecommendations = append(report.CacheRecommendations, strategies...)
+				}
+				continue
+			}
+
+			// 캐시 전략에 최신 버전 정보 반영
 			if strategies, ok := cacheStrategies[lang]; ok {
-				report.CacheRecommendations = append(report.CacheRecommendations, strategies...)
+				for _, strategy := range strategies {
+					strategy.Example = strings.ReplaceAll(strategy.Example,
+						fmt.Sprintf("'%s'", latestVersions[lang]),
+						fmt.Sprintf("'%s'", latestVersion))
+					report.CacheRecommendations = append(report.CacheRecommendations, strategy)
+				}
 			}
 		}
 	}

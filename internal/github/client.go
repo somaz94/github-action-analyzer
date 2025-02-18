@@ -12,6 +12,7 @@ import (
 
 type Client struct {
 	client *gh.Client
+	ctx    context.Context
 }
 
 func NewClient(token string) *Client {
@@ -23,6 +24,7 @@ func NewClient(token string) *Client {
 
 	return &Client{
 		client: gh.NewClient(tc),
+		ctx:    ctx,
 	}
 }
 
@@ -83,4 +85,12 @@ func (c *Client) GetFileContent(ctx context.Context, owner, repo, path string) (
 	}
 
 	return content, nil
+}
+
+func (c *Client) GetLatestRelease(ctx context.Context, owner, repo string) (*gh.RepositoryRelease, error) {
+	release, _, err := c.client.Repositories.GetLatestRelease(ctx, owner, repo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get latest release for %s/%s: %v", owner, repo, err)
+	}
+	return release, nil
 }
