@@ -29,7 +29,6 @@ The **GitHub Action Analyzer** is a GitHub Action that analyzes your workflow pe
 | `cache_recommendations`| Suggested caching strategies                         | JSON string    |
 | `docker_optimizations` | Docker optimization recommendations                  | JSON string    |
 | `status`              | Analysis status                                      | `"success"`    |
-| `error_message`       | Error message if analysis fails                      | `""`           |
 
 <br/>
 
@@ -75,6 +74,24 @@ jobs:
   - Docker image optimization
   - Workflow structure improvements
   - Resource allocation
+
+## Supported Languages & Frameworks
+
+| Language/Framework | Cache Recommendations | Version Check |
+|-------------------|----------------------|---------------|
+| Go                | ✅                   | ✅            |
+| Node.js          | ✅                   | ✅            |
+| Python           | ✅                   | ✅            |
+<!-- | Java/Maven       | ✅                   | ✅            |
+| Ruby             | ✅                   | ✅            |
+| Rust             | ✅                   | ✅            |
+| .NET             | ✅                   | ✅            | -->
+
+Each language includes specific recommendations for:
+- Dependencies caching
+- Build artifacts caching
+- Version updates
+- Best practices for the ecosystem
 
 <br/>
 

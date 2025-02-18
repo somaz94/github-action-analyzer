@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -122,6 +123,15 @@ func (r *PerformanceReport) setGitHubOutputs() error {
 	})
 	if err != nil {
 		return err
+	}
+
+	// 캐시 추천사항에서 GitHub Actions 표현식 이스케이프
+	for i := range r.CacheRecommendations {
+		r.CacheRecommendations[i].Example = strings.ReplaceAll(
+			r.CacheRecommendations[i].Example,
+			"${{",
+			"${'{'}{",
+		)
 	}
 
 	cacheRecs, err := json.Marshal(r.CacheRecommendations)

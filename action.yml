@@ -20,8 +20,6 @@ outputs:
     description: 'Docker optimization recommendations'
   status:
     description: 'Analysis status (success/failure)'
-  error_message:
-    description: 'Error message if analysis fails'
 
 runs:
   using: 'docker'
