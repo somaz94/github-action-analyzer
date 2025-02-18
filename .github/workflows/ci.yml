@@ -49,13 +49,6 @@ jobs:
           workflow_file: ci.yml
           repository: ${{ github.repository }}
 
-      - name: Display Analysis Results
-        run: |
-          echo "Performance Summary: ${{ steps.analyzer.outputs.performance_summary }}"
-          echo "Cache Recommendations: ${{ steps.analyzer.outputs.cache_recommendations }}"
-          echo "Docker Optimizations: ${{ steps.analyzer.outputs.docker_optimizations }}"
-          echo "Status: ${{ steps.analyzer.outputs.status }}"
-
   analyze-test-workflow:
     name: Analyze Test Workflow
     runs-on: ubuntu-latest
