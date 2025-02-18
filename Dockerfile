@@ -1,11 +1,24 @@
-# Set the base image to use for subsequent instructions
-FROM alpine:3.21
+# Build stage
+FROM golang:1.24-alpine AS builder
 
-# Set the working directory inside the container
-WORKDIR /usr/src
+WORKDIR /app
+COPY . .
 
-# Copy any source file(s) required for the action
-COPY entrypoint.sh .
+RUN go mod download
+RUN go build -o /analyzer ./cmd/analyzer
 
-# Configure the container to be run as an executable
-ENTRYPOINT ["/usr/src/entrypoint.sh"]
+# Final stage
+FROM alpine:latest
+
+# Install required packages
+RUN apk add --no-cache \
+    git \
+    curl
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder stage
+COPY --from=builder /analyzer /analyzer
+
+ENTRYPOINT ["/analyzer"]

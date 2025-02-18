@@ -1,21 +1,20 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Define your inputs here.
+name: 'GitHub Actions Analyzer'
+description: 'Analyzes GitHub Actions workflow performance and provides optimization recommendations'
 inputs:
-  who-to-greet:
-    description: 'Your input description here'
+  github_token:
+    description: 'GitHub token for API access'
     required: true
-    default: 'World'
-
-# Define your outputs here.
-outputs:
-  greeting:
-    description: 'Your output description here'
+  workflow_file:
+    description: 'Workflow file to analyze'
+    required: true
+  repository:
+    description: 'Repository to analyze (format: owner/repo)'
+    required: true
 
 runs:
-  using: docker
-  image: Dockerfile
+  using: 'docker'
+  image: 'Dockerfile'
   env:
-    INPUT_WHO_TO_GREET: ${{ inputs.who-to-greet }}
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    WORKFLOW_FILE: ${{ inputs.workflow_file }}
+    REPOSITORY: ${{ inputs.repository }}

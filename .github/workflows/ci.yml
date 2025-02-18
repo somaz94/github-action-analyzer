@@ -5,69 +5,89 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '.github/workflows/**'
+      - '**/*.md'
+      - 'backup/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  test-docker:
-    name: Docker Tests
+  build:
+    name: Build
     runs-on: ubuntu-latest
-
-    # Run a local registry to push to
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5001:5000
-
-    env:
-      TEST_TAG: localhost:5001/actions/container-action:latest
-
     steps:
       - name: Checkout
-        id: checkout
         uses: actions/checkout@v4
 
-      - name: Setup Docker BuildX
-        id: setup-buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-          driver-opts: network=host
 
-      - name: Build the Container
-        id: build
-        uses: docker/build-push-action@v6
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          tags: ${{ env.TEST_TAG }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Run the Container
-        id: run
-        env:
-          INPUT_WHO_TO_GREET: Mona Lisa Octocat
-        run: |
-          docker run \
-            --env INPUT_WHO_TO_GREET="${{ env.INPUT_WHO_TO_GREET }}" \
-            --rm ${{ env.TEST_TAG }}
-
-  test-action:
-    name: GitHub Actions Test
+  analyze:
+    name: Analyze Workflow
     runs-on: ubuntu-latest
-
+    needs: [build]
     steps:
       - name: Checkout
-        id: checkout
         uses: actions/checkout@v4
 
-      - name: Test Local Action
-        id: test-action
+      - name: Run Performance Analysis
         uses: ./
         with:
-          who-to-greet: Mona Lisa Octocat
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.greeting }}"
+  test-slow-workflow:
+    name: Test Workflow with Inefficiencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 의도적으로 비효율적인 Docker 빌드 (캐시 미사용)
+      - name: Inefficient Docker Build
+        run: |
+          docker build --no-cache -t test-image .
+
+      # 의도적으로 중복된 의존성 설치
+      - name: Redundant Dependencies
+        run: |
+          npm install
+          npm install
+          npm install
+
+      # 의도적인 지연
+      - name: Artificial Delay
+        run: sleep 10
+
+      # 캐시를 사용하지 않는 작업
+      - name: No Cache Usage
+        run: |
+          go mod download
+          go build ./...
+
+  analyze-test-workflow:
+    name: Analyze Test Workflow
+    needs: test-slow-workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Performance Analysis
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: test.yml
+          repository: ${{ github.repository }}
