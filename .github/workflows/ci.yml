@@ -51,10 +51,14 @@ jobs:
 
       - name: Display Analysis Results
         run: |
+          echo "Performance Summary:"
           echo "${{ steps.analyzer.outputs.performance_summary }}"
+          echo ""
+          echo "Cache Recommendations:"
           echo "${{ steps.analyzer.outputs.cache_recommendations }}"
+          echo ""
+          echo "Docker Optimizations:"
           echo "${{ steps.analyzer.outputs.docker_optimizations }}"
-          echo "${{ steps.analyzer.outputs.status }}"
 
   analyze-test-workflow:
     name: Analyze Test Workflow

@@ -219,6 +219,11 @@ func unique(slice []string) []string {
 	return list
 }
 
+// 예시 문자열에서 GitHub Actions 표현식을 이스케이프
+func escapeGitHubExpression(example string) string {
+	return strings.ReplaceAll(example, "${{", "\\${\\{")
+}
+
 func analyzeCacheHitPatterns(ctx context.Context, owner, repo string, run *gh.WorkflowRun, client GithubClient) ([]models.CacheRecommendation, error) {
 	uniqueRecommendations := make(map[string]models.CacheRecommendation)
 
@@ -258,6 +263,11 @@ func analyzeCacheHitPatterns(ctx context.Context, owner, repo string, run *gh.Wo
 	var recommendations []models.CacheRecommendation
 	for _, rec := range uniqueRecommendations {
 		recommendations = append(recommendations, rec)
+	}
+
+	// 예시 문자열 이스케이프 처리
+	for i := range recommendations {
+		recommendations[i].Example = escapeGitHubExpression(recommendations[i].Example)
 	}
 
 	return recommendations, nil
@@ -322,15 +332,26 @@ func generateVersionUpdateExample(lang string) string {
 
 // Analyzer 구조체의 analyzeCaching 메서드도 수정
 func (a *Analyzer) analyzeCaching(ctx context.Context, owner, repo string, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
+	// 중복 제거를 위한 맵
+	uniqueRecommendations := make(map[string]models.CacheRecommendation)
+
 	for _, run := range runs {
 		recommendations, err := analyzeCacheHitPatterns(ctx, owner, repo, run, a.client)
 		if err != nil {
 			return err
 		}
-		if len(recommendations) > 0 {
-			report.CacheRecommendations = append(report.CacheRecommendations, recommendations...)
+
+		// 중복 제거하면서 추가
+		for _, rec := range recommendations {
+			uniqueRecommendations[rec.Path+rec.Description] = rec
 		}
 	}
+
+	// 중복 제거된 추천사항만 추가
+	for _, rec := range uniqueRecommendations {
+		report.CacheRecommendations = append(report.CacheRecommendations, rec)
+	}
+
 	return nil
 }
 
