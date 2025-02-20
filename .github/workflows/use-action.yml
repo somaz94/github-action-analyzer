@@ -1,4 +1,4 @@
-name: Example Workflow using Go Git Commit Action
+name: Example Workflow using GitHub Action Analyzer
 
 on:
   workflow_dispatch:
