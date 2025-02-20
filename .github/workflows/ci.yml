@@ -79,7 +79,6 @@ jobs:
       - name: Print Analysis Results
         if: always()
         run: |
-          echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
           echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
           echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
@@ -126,7 +125,6 @@ jobs:
       - name: Print Analysis Results
         if: always()
         run: |
-          echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
           echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
           echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
@@ -173,7 +171,6 @@ jobs:
       - name: Print Analysis Results
         if: always()
         run: |
-          echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
           echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
           echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"

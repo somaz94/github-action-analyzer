@@ -16,45 +16,146 @@ permissions:
   contents: write
 
 jobs:
-  analyze:
+  analyze-workflow:
     name: Analyze Workflow
     runs-on: ubuntu-latest
+    needs: [build]
+    outputs:
+      performance_summary: ${{ steps.analysis.outputs.performance_summary }}
+      cache_recommendations: ${{ steps.analysis.outputs.cache_recommendations }}
+      docker_optimizations: ${{ steps.analysis.outputs.docker_optimizations }}
+      status: ${{ steps.analysis.outputs.status }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: somaz94/github-action-analyzer@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_file: ci.yml
           repository: ${{ github.repository }}
+          analysis_depth: '20'
+          timeout: '15'
+          ignore_patterns: 'checkout,setup'
 
-  analyze-languages-workflow:
-    name: Analyze Languages Workflow
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
+            ${{ steps.analysis.outputs.status }}
+          delimiter: "\n"
+          trim_whitespace: true
+          debug_mode: true
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"
+
+  analyze-test-workflow:
+    name: Analyze Test Workflow
     runs-on: ubuntu-latest
+    needs: [build]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: somaz94/github-action-analyzer@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow_file: test-languages-workflow.yml
           repository: ${{ github.repository }}
           debug: true
+          analysis_depth: '10'
+
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
+            ${{ steps.analysis.outputs.status }}
+          delimiter: "\n"
+          trim_whitespace: true
+          debug_mode: true
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"
 
   analyze-target-workflow:
     name: Analyze Target Workflow
     runs-on: ubuntu-latest
+    needs: [build]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: somaz94/github-action-analyzer@v1
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
           workflow_file: ci.yml
           repository: somaz94/compress-decompress
+          analysis_depth: '15'
+          ignore_patterns: 'setup,cleanup'
+
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
+            ${{ steps.analysis.outputs.status }}
+          delimiter: "\n"
+          trim_whitespace: true
+          debug_mode: true
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"

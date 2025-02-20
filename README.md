@@ -13,12 +13,25 @@ The **GitHub Action Analyzer** is a GitHub Action that analyzes your workflow pe
 
 ## Inputs
 
-| Input           | Required | Description                                    | Default | Example                |
-|----------------|----------|------------------------------------------------|---------|------------------------|
-| `github_token` | Yes      | GitHub token for API access                    | -       | `${{ secrets.GITHUB_TOKEN }}` |
-| `workflow_file`| Yes      | Name of the workflow file to analyze          | -       | `"ci.yml"`            |
-| `repository`   | Yes      | Repository in owner/repo format               | -       | `"owner/repo"`        |
-| `debug`        | No       | Enable debug mode for detailed logging        | `false` | `true`                |
+| Input            | Required | Description                                    | Default | Example                |
+|-----------------|----------|------------------------------------------------|---------|------------------------|
+| `github_token`  | Yes      | GitHub token for API access                    | -       | `${{ secrets.GITHUB_TOKEN }}` |
+| `workflow_file` | Yes      | Name of the workflow file to analyze          | -       | `"ci.yml"`            |
+| `repository`    | Yes      | Repository in owner/repo format               | -       | `"owner/repo"`        |
+| `debug`         | No       | Enable debug mode for detailed logging        | `false` | `true`                |
+| `analysis_depth`| No       | Number of workflow runs to analyze            | `10`    | `"20"`                |
+| `ignore_patterns`| No      | Comma-separated list of step names to ignore  | -       | `"checkout,setup"`    |
+| `timeout`       | No       | Analysis timeout in minutes                   | `60`    | `"15"`                |
+
+## Outputs
+
+| Output                 | Description                                    |
+|-----------------------|------------------------------------------------|
+| `metrics_summary`      | Summary of workflow metrics in JSON format     |
+| `performance_summary`  | Detailed performance analysis summary          |
+| `cache_recommendations`| Cache optimization recommendations             |
+| `docker_optimizations` | Docker-related optimization suggestions        |
+| `status`              | Analysis execution status                      |
 
 <br/>
 
@@ -122,28 +135,92 @@ Each language includes specific recommendations for:
 
 ## Advanced Usage
 
-### Analyzing Specific Workflows
-
+### Basic Usage
 ```yaml
-- uses: somaz94/github-action-analyzer@v1
-  with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    workflow_file: deploy.yml
-    repository: ${{ github.repository }}
+name: Analyze Workflow
+on: [push, workflow_dispatch]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Analyze Workflow Performance
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
 ```
 
-### Monitoring Multiple Workflows
-
+### Advanced Usage with All Options
 ```yaml
-- name: Analyze CI Workflow
-  uses: somaz94/github-action-analyzer@v1
-  with:
-    workflow_file: ci.yml
-    
-- name: Analyze Deploy Workflow
-  uses: somaz94/github-action-analyzer@v1
-  with:
-    workflow_file: deploy.yml
+name: Detailed Workflow Analysis
+on: [push, workflow_dispatch]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Analyze Workflow Performance
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
+          debug: true
+          analysis_depth: '20'
+          ignore_patterns: 'checkout,setup'
+          timeout: '15'
+```
+
+### Analyzing Multiple Workflows
+```yaml
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze CI Workflow
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
+          
+      - name: Analyze Deploy Workflow
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: deploy.yml
+          repository: ${{ github.repository }}
+```
+
+### Using Analysis Results
+```yaml
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze Workflow
+        id: analysis
+        uses: somaz94/github-action-analyzer@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow_file: ci.yml
+          repository: ${{ github.repository }}
+
+      - name: Print Analysis Results
+        run: |
+          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
+          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
+          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
+          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
+          echo "Status: ${{ steps.analysis.outputs.status }}"
 ```
 
 <br/>
