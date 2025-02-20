@@ -217,6 +217,15 @@ func (r *PerformanceReport) calculateMetrics() {
 	maxDuration := time.Duration(0)
 	failedSteps := 0
 
+	// SlowSteps가 비어있으면 기본값 설정
+	if len(r.SlowSteps) == 0 {
+		r.Metrics.AverageStepDuration = 0
+		r.Metrics.MaxStepDuration = 0
+		r.Metrics.TotalSteps = 0
+		r.Metrics.FailedSteps = 0
+		return
+	}
+
 	for _, step := range r.SlowSteps {
 		totalDuration += step.ExecutionTime
 		if step.ExecutionTime > maxDuration {

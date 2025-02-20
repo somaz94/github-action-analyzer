@@ -67,7 +67,6 @@ jobs:
           repository: ${{ github.repository }}
           debug: true
           analysis_depth: '10'
-          timeout: '10'
 
   analyze-target-workflow:
     name: Analyze Target Workflow
@@ -84,5 +83,4 @@ jobs:
           workflow_file: ci.yml
           repository: somaz94/compress-decompress
           analysis_depth: '15'
-          timeout: '12'
           ignore_patterns: 'setup,cleanup'
