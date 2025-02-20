@@ -37,9 +37,17 @@ type PerformanceReport struct {
 	DockerOptimizations  []DockerOptimization  `json:"docker_optimizations"`
 	CostSavingTips       []string              `json:"cost_saving_tips"`
 	WorkflowAnalysis     *WorkflowAnalysis     `json:"workflow_analysis"`
+	Metrics              struct {
+		AverageStepDuration time.Duration `json:"average_step_duration"`
+		MaxStepDuration     time.Duration `json:"max_step_duration"`
+		TotalSteps          int           `json:"total_steps"`
+		FailedSteps         int           `json:"failed_steps"`
+	} `json:"metrics"`
 }
 
 func (r *PerformanceReport) Output() error {
+	r.calculateMetrics()
+
 	summary := fmt.Sprintf(`
 ╭──────────────────────────────────────────────╮
 │           Workflow Analysis Report            │
@@ -202,4 +210,25 @@ func (r *PerformanceReport) setGitHubOutputs() error {
 	}
 
 	return nil
+}
+
+func (r *PerformanceReport) calculateMetrics() {
+	var totalDuration time.Duration
+	maxDuration := time.Duration(0)
+	failedSteps := 0
+
+	for _, step := range r.SlowSteps {
+		totalDuration += step.ExecutionTime
+		if step.ExecutionTime > maxDuration {
+			maxDuration = step.ExecutionTime
+		}
+		if strings.Contains(strings.ToLower(step.Name), "failed") {
+			failedSteps++
+		}
+	}
+
+	r.Metrics.AverageStepDuration = totalDuration / time.Duration(len(r.SlowSteps))
+	r.Metrics.MaxStepDuration = maxDuration
+	r.Metrics.TotalSteps = len(r.SlowSteps)
+	r.Metrics.FailedSteps = failedSteps
 }

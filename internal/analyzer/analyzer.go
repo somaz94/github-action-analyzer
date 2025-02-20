@@ -3,6 +3,7 @@ package analyzer
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -334,43 +335,78 @@ func (a *Analyzer) debugLog(format string, args ...interface{}) {
 
 // Analyze performs the workflow analysis
 func (a *Analyzer) Analyze(ctx context.Context, owner, repo, workflowFile string) (*models.PerformanceReport, error) {
+	// Parse timeout from env
+	timeoutStr := os.Getenv("TIMEOUT")
+	timeout := 60 * time.Minute // default timeout changed to 60 minutes
+	if t, err := strconv.Atoi(timeoutStr); err == nil && t > 0 {
+		timeout = time.Duration(t) * time.Minute
+	}
+
+	// Create timeout context
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	report := &models.PerformanceReport{
 		Repository:   fmt.Sprintf("%s/%s", owner, repo),
 		WorkflowFile: workflowFile,
 	}
 
-	runs, err := a.client.GetWorkflowRuns(ctx, owner, repo, workflowFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get workflow runs: %v", err)
-	}
+	// Run analysis tasks with timeout context
+	errCh := make(chan error, 1)
+	go func() {
+		var err error
+		defer func() {
+			errCh <- err
+		}()
 
-	if err := a.analyzeWorkflowRuns(ctx, owner, repo, runs, report); err != nil {
-		return nil, err
-	}
-
-	if err := a.analyzeDockerConfigs(ctx, owner, repo, report); err != nil {
-		return nil, err
-	}
-
-	if err := a.analyzeCaching(ctx, owner, repo, report); err != nil {
-		return nil, err
-	}
-
-	workflowContent, err := a.client.GetFileContent(ctx, owner, repo, workflowFile)
-	if err == nil {
-		if err := a.analyzeWorkflowStructure(workflowContent, report); err != nil {
-			return nil, err
+		if err = a.analyzeWorkflowRuns(ctx, owner, repo, workflowFile, report); err != nil {
+			return
 		}
+		if err = a.analyzeDockerConfigs(ctx, owner, repo, report); err != nil {
+			return
+		}
+		if err = a.analyzeCaching(ctx, owner, repo, report); err != nil {
+			return
+		}
+
+		// Get workflow content for structure analysis
+		workflowPath := report.WorkflowFile
+		if !strings.HasPrefix(workflowPath, ".github/workflows/") {
+			workflowPath = fmt.Sprintf(".github/workflows/%s", workflowPath)
+		}
+
+		if content, err := a.client.GetFileContent(ctx, owner, repo, workflowPath); err == nil {
+			if err = a.analyzeWorkflowStructure(content, report); err != nil {
+				a.debugLog("Warning: workflow structure analysis failed: %v", err)
+			}
+		}
+
+		a.generateCostSavingTips(report)
+	}()
+
+	// Wait for either completion or timeout
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return nil, fmt.Errorf("analysis failed: %v", err)
+		}
+		return report, nil
+	case <-ctx.Done():
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("analysis timed out after %v minutes", timeout.Minutes())
+		}
+		return nil, ctx.Err()
 	}
-
-	a.generateCostSavingTips(report)
-
-	return report, nil
 }
 
 // analyzeWorkflowRuns analyzes workflow execution history
-func (a *Analyzer) analyzeWorkflowRuns(ctx context.Context, owner, repo string, runs []*gh.WorkflowRun, report *models.PerformanceReport) error {
+func (a *Analyzer) analyzeWorkflowRuns(ctx context.Context, owner, repo, workflowFile string, report *models.PerformanceReport) error {
 	var totalTime time.Duration
+
+	runs, err := a.client.GetWorkflowRuns(ctx, owner, repo, workflowFile)
+	if err != nil {
+		return fmt.Errorf("failed to get workflow runs: %v", err)
+	}
 
 	for _, githubRun := range runs {
 		// Calculate actual workflow run time

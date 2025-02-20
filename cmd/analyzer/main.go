@@ -4,14 +4,26 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/somaz94/github-action-analyzer/internal/analyzer"
 	"github.com/somaz94/github-action-analyzer/internal/github"
 )
 
 func main() {
-	ctx := context.Background()
+	// Create cancellable context
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle termination signals
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigCh
+		cancel()
+	}()
 
 	// Get inputs from environment variables
 	token := os.Getenv("INPUT_GITHUB_TOKEN")
@@ -36,9 +48,12 @@ func main() {
 	debug := os.Getenv("DEBUG") == "true"
 	analyzer := analyzer.NewAnalyzer(client, debug)
 
-	// Run analysis
+	// Run analysis with context
 	report, err := analyzer.Analyze(ctx, owner, repo, workflowFile)
 	if err != nil {
+		if ctx.Err() != nil {
+			log.Fatal("Analysis cancelled")
+		}
 		log.Fatalf("Analysis failed: %v", err)
 	}
 

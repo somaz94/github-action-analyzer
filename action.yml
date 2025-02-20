@@ -15,6 +15,21 @@ inputs:
   debug:
     description: 'Enable debug mode'
     required: false
+  analysis_depth:
+    description: 'Number of workflow runs to analyze (default: 10)'
+    required: false
+    default: '10'
+  ignore_patterns:
+    description: 'Comma-separated list of step names to ignore in analysis'
+    required: false
+  timeout:
+    description: 'Analysis timeout in minutes (default: 10)'
+    required: false
+    default: '60'
+
+outputs:
+  metrics_summary:
+    description: 'Summary of workflow metrics in JSON format'
 
 runs:
   using: 'docker'
@@ -24,6 +39,9 @@ runs:
     WORKFLOW_FILE: ${{ inputs.workflow_file }}
     REPOSITORY: ${{ inputs.repository }}
     DEBUG: ${{ inputs.debug }}
+    ANALYSIS_DEPTH: ${{ inputs.analysis_depth }}
+    IGNORE_PATTERNS: ${{ inputs.ignore_patterns }}
+    TIMEOUT: ${{ inputs.timeout }}
 branding:
   icon: 'activity'
   color: 'blue'

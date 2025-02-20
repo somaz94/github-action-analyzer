@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	gh "github.com/google/go-github/v45/github"
 	"golang.org/x/oauth2"
@@ -29,16 +30,28 @@ func NewClient(token string) *Client {
 }
 
 func (c *Client) GetWorkflowRuns(ctx context.Context, owner, repo, workflowFile string) ([]*gh.WorkflowRun, error) {
-	runs, _, err := c.client.Actions.ListWorkflowRunsByFileName(ctx, owner, repo, workflowFile, &gh.ListWorkflowRunsOptions{
+	var allRuns []*gh.WorkflowRun
+	opts := &gh.ListWorkflowRunsOptions{
 		ListOptions: gh.ListOptions{
 			PerPage: 100,
 		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list workflow runs: %v", err)
 	}
 
-	return runs.WorkflowRuns, nil
+	// Add retry logic
+	for retries := 3; retries > 0; retries-- {
+		runs, _, err := c.client.Actions.ListWorkflowRunsByFileName(ctx, owner, repo, workflowFile, opts)
+		if err == nil {
+			allRuns = append(allRuns, runs.WorkflowRuns...)
+			break
+		}
+		time.Sleep(time.Second * 2)
+	}
+
+	if len(allRuns) == 0 {
+		return nil, fmt.Errorf("failed to list workflow runs after retries")
+	}
+
+	return allRuns, nil
 }
 
 func (c *Client) GetWorkflowJobLogs(ctx context.Context, owner, repo string, runID int64) (string, error) {
