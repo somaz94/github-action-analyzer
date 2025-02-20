@@ -107,10 +107,10 @@ This is useful for:
 | Go                | ✅                   | ✅            |
 | Node.js          | ✅                   | ✅            |
 | Python           | ✅                   | ✅            |
-<!-- | Java/Maven       | ✅                   | ✅            |
+| Java/Maven       | ✅                   | ✅            |
 | Ruby             | ✅                   | ✅            |
 | Rust             | ✅                   | ✅            |
-| .NET             | ✅                   | ✅            | -->
+| .NET             | ✅                   | ✅            |
 
 Each language includes specific recommendations for:
 - Dependencies caching
