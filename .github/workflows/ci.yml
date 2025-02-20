@@ -37,11 +37,17 @@ jobs:
     name: Analyze Workflow
     runs-on: ubuntu-latest
     needs: [build]
+    outputs:
+      performance_summary: ${{ steps.analysis.outputs.performance_summary }}
+      cache_recommendations: ${{ steps.analysis.outputs.cache_recommendations }}
+      docker_optimizations: ${{ steps.analysis.outputs.docker_optimizations }}
+      status: ${{ steps.analysis.outputs.status }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: ./
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -50,6 +56,31 @@ jobs:
           analysis_depth: '20'
           timeout: '15'
           ignore_patterns: 'checkout,setup'
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "### Raw JSON Output" >> $GITHUB_STEP_SUMMARY
+          echo "```json" >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.analysis.outputs.metrics_summary }}' >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Individual Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "Average Step Duration: $(echo '${{ steps.analysis.outputs.metrics_summary }}' | jq -r '.metrics.average_step_duration')" >> $GITHUB_STEP_SUMMARY
+          echo "Max Step Duration: $(echo '${{ steps.analysis.outputs.metrics_summary }}' | jq -r '.metrics.max_step_duration')" >> $GITHUB_STEP_SUMMARY
+          echo "Total Steps: $(echo '${{ steps.analysis.outputs.metrics_summary }}' | jq -r '.metrics.total_steps')" >> $GITHUB_STEP_SUMMARY
+          echo "Failed Steps: $(echo '${{ steps.analysis.outputs.metrics_summary }}' | jq -r '.metrics.failed_steps')" >> $GITHUB_STEP_SUMMARY
+
+          echo "Raw JSON Output:" 
+          echo '${{ steps.analysis.outputs.metrics_summary }}'
+          
+          echo "Formatted Output:"
+          echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.'
 
   analyze-test-workflow:
     name: Analyze Test Workflow

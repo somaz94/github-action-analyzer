@@ -23,13 +23,21 @@ inputs:
     description: 'Comma-separated list of step names to ignore in analysis'
     required: false
   timeout:
-    description: 'Analysis timeout in minutes (default: 10)'
+    description: 'Analysis timeout in minutes (default: 60)'
     required: false
     default: '60'
 
 outputs:
   metrics_summary:
     description: 'Summary of workflow metrics in JSON format'
+  performance_summary:
+    description: 'Detailed performance analysis summary'
+  cache_recommendations:
+    description: 'Cache optimization recommendations'
+  docker_optimizations:
+    description: 'Docker-related optimization suggestions'
+  status:
+    description: 'Analysis execution status'
 
 runs:
   using: 'docker'
@@ -42,6 +50,7 @@ runs:
     ANALYSIS_DEPTH: ${{ inputs.analysis_depth }}
     IGNORE_PATTERNS: ${{ inputs.ignore_patterns }}
     TIMEOUT: ${{ inputs.timeout }}
+
 branding:
   icon: 'activity'
   color: 'blue'
