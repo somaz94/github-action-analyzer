@@ -86,6 +86,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: ./
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -93,6 +94,26 @@ jobs:
           repository: ${{ github.repository }}
           debug: true
           analysis_depth: '10'
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
+          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
+          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
+          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
+          echo "Status: ${{ steps.analysis.outputs.status }}"
+
+          if [ ! -z "${{ steps.analysis.outputs.metrics_summary }}" ]; then
+            echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "```json" >> $GITHUB_STEP_SUMMARY
+            echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Note" >> $GITHUB_STEP_SUMMARY
+            echo "No metrics data available" >> $GITHUB_STEP_SUMMARY
+          fi
 
   analyze-target-workflow:
     name: Analyze Target Workflow
@@ -103,6 +124,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Performance Analysis
+        id: analysis
         uses: ./
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
@@ -110,3 +132,23 @@ jobs:
           repository: somaz94/compress-decompress
           analysis_depth: '15'
           ignore_patterns: 'setup,cleanup'
+
+      - name: Print Analysis Results
+        if: always()
+        run: |
+          echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
+          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
+          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
+          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
+          echo "Status: ${{ steps.analysis.outputs.status }}"
+
+          if [ ! -z "${{ steps.analysis.outputs.metrics_summary }}" ]; then
+            echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "```json" >> $GITHUB_STEP_SUMMARY
+            echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Note" >> $GITHUB_STEP_SUMMARY
+            echo "No metrics data available" >> $GITHUB_STEP_SUMMARY
+          fi

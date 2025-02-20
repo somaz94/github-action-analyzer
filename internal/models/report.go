@@ -152,6 +152,12 @@ func (r *PerformanceReport) Output() error {
 }
 
 func (r *PerformanceReport) setGitHubOutputs() error {
+	// Convert metrics to JSON
+	metricsSummary, err := json.Marshal(r.Metrics)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metrics: %v", err)
+	}
+
 	// Convert report sections to JSON strings
 	performanceSummary, err := json.Marshal(map[string]interface{}{
 		"repository":       r.Repository,
@@ -196,6 +202,9 @@ func (r *PerformanceReport) setGitHubOutputs() error {
 	defer f.Close()
 
 	// Write outputs to the file
+	if _, err := fmt.Fprintf(f, "metrics_summary=%s\n", metricsSummary); err != nil {
+		return err
+	}
 	if _, err := fmt.Fprintf(f, "performance_summary=%s\n", performanceSummary); err != nil {
 		return err
 	}
