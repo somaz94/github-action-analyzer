@@ -57,20 +57,40 @@ jobs:
           timeout: '15'
           ignore_patterns: 'checkout,setup'
 
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          delimiter: ','
+          trim_whitespace: true
+
       - name: Print Analysis Results
         if: always()
         run: |
           echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
-          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
-          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
-          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
-          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
-          echo "Status: ${{ steps.analysis.outputs.status }}"
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"
 
-          if [ ! -z "${{ steps.analysis.outputs.metrics_summary }}" ]; then
+          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
             echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
             echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
             echo "```" >> $GITHUB_STEP_SUMMARY
           else
             echo "### Note" >> $GITHUB_STEP_SUMMARY
@@ -95,20 +115,40 @@ jobs:
           debug: true
           analysis_depth: '10'
 
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          delimiter: ','
+          trim_whitespace: true
+
       - name: Print Analysis Results
         if: always()
         run: |
           echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
-          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
-          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
-          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
-          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
-          echo "Status: ${{ steps.analysis.outputs.status }}"
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"
 
-          if [ ! -z "${{ steps.analysis.outputs.metrics_summary }}" ]; then
+          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
             echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
             echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
             echo "```" >> $GITHUB_STEP_SUMMARY
           else
             echo "### Note" >> $GITHUB_STEP_SUMMARY
@@ -133,20 +173,40 @@ jobs:
           analysis_depth: '15'
           ignore_patterns: 'setup,cleanup'
 
+      - name: Set Analysis Results
+        uses: somaz94/env-output-setter@v1
+        with:
+          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_value: |
+            ${{ steps.analysis.outputs.metrics_summary }},
+            ${{ steps.analysis.outputs.performance_summary }},
+            ${{ steps.analysis.outputs.cache_recommendations }},
+            ${{ steps.analysis.outputs.docker_optimizations }},
+            ${{ steps.analysis.outputs.status }}
+          delimiter: ','
+          trim_whitespace: true
+
       - name: Print Analysis Results
         if: always()
         run: |
           echo "### All Outputs" >> $GITHUB_STEP_SUMMARY
-          echo "Metrics Summary: ${{ steps.analysis.outputs.metrics_summary }}"
-          echo "Performance Summary: ${{ steps.analysis.outputs.performance_summary }}"
-          echo "Cache Recommendations: ${{ steps.analysis.outputs.cache_recommendations }}"
-          echo "Docker Optimizations: ${{ steps.analysis.outputs.docker_optimizations }}"
-          echo "Status: ${{ steps.analysis.outputs.status }}"
+          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+          echo "Status: ${{ env.STATUS }}"
 
-          if [ ! -z "${{ steps.analysis.outputs.metrics_summary }}" ]; then
+          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
             echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
             echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ steps.analysis.outputs.metrics_summary }}' | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
             echo "```" >> $GITHUB_STEP_SUMMARY
           else
             echo "### Note" >> $GITHUB_STEP_SUMMARY
