@@ -41,16 +41,15 @@ func (c *Client) GetWorkflowRuns(ctx context.Context, owner, repo, workflowFile 
 	for retries := 3; retries > 0; retries-- {
 		runs, _, err := c.client.Actions.ListWorkflowRunsByFileName(ctx, owner, repo, workflowFile, opts)
 		if err == nil {
-			allRuns = append(allRuns, runs.WorkflowRuns...)
+			if runs != nil && runs.WorkflowRuns != nil {
+				allRuns = append(allRuns, runs.WorkflowRuns...)
+			}
 			break
 		}
 		time.Sleep(time.Second * 2)
 	}
 
-	if len(allRuns) == 0 {
-		return nil, fmt.Errorf("failed to list workflow runs after retries")
-	}
-
+	// 실행 기록이 없어도 빈 슬라이스 반환
 	return allRuns, nil
 }
 
