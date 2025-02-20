@@ -178,6 +178,15 @@ var cacheStrategies = map[string][]models.CacheRecommendation{
           restore-keys: |
             ${{ runner.os }}-node-`,
 		},
+		{
+			Path:        "node_modules",
+			Description: "Cache node_modules directory",
+			Impact:      "Can significantly reduce installation time for large projects",
+			Example: `      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}`,
+		},
 	},
 	"python": {
 		{
