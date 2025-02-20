@@ -60,21 +60,31 @@ jobs:
       - name: Set Analysis Results
         uses: somaz94/env-output-setter@v1
         with:
-          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
           env_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_key: |
+            FORMATTED_METRICS
+            FORMATTED_PERFORMANCE
+            FORMATTED_CACHE
+            FORMATTED_DOCKER
+            ANALYSIS_STATUS
           output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          delimiter: '::'
+          delimiter: "\n"
           trim_whitespace: true
           debug_mode: true
 
@@ -119,22 +129,33 @@ jobs:
       - name: Set Analysis Results
         uses: somaz94/env-output-setter@v1
         with:
-          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
           env_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_key: |
+            FORMATTED_METRICS
+            FORMATTED_PERFORMANCE
+            FORMATTED_CACHE
+            FORMATTED_DOCKER
+            ANALYSIS_STATUS
           output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          delimiter: '::'
+          delimiter: "\n"
           trim_whitespace: true
+          debug_mode: true
 
       - name: Print Analysis Results
         if: always()
@@ -177,22 +198,33 @@ jobs:
       - name: Set Analysis Results
         uses: somaz94/env-output-setter@v1
         with:
-          env_key: METRICS_SUMMARY,PERFORMANCE_SUMMARY,CACHE_RECOMMENDATIONS,DOCKER_OPTIMIZATIONS,STATUS
+          env_key: |
+            METRICS_SUMMARY
+            PERFORMANCE_SUMMARY
+            CACHE_RECOMMENDATIONS
+            DOCKER_OPTIMIZATIONS
+            STATUS
           env_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: FORMATTED_METRICS,FORMATTED_PERFORMANCE,FORMATTED_CACHE,FORMATTED_DOCKER,ANALYSIS_STATUS
+          output_key: |
+            FORMATTED_METRICS
+            FORMATTED_PERFORMANCE
+            FORMATTED_CACHE
+            FORMATTED_DOCKER
+            ANALYSIS_STATUS
           output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}::
-            ${{ steps.analysis.outputs.performance_summary }}::
-            ${{ steps.analysis.outputs.cache_recommendations }}::
-            ${{ steps.analysis.outputs.docker_optimizations }}::
+            ${{ steps.analysis.outputs.metrics_summary }}
+            ${{ steps.analysis.outputs.performance_summary }}
+            ${{ steps.analysis.outputs.cache_recommendations }}
+            ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          delimiter: '::'
+          delimiter: "\n"
           trim_whitespace: true
+          debug_mode: true
 
       - name: Print Analysis Results
         if: always()
