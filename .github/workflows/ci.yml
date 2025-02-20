@@ -72,18 +72,6 @@ jobs:
             ${{ steps.analysis.outputs.cache_recommendations }}
             ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: |
-            FORMATTED_METRICS
-            FORMATTED_PERFORMANCE
-            FORMATTED_CACHE
-            FORMATTED_DOCKER
-            ANALYSIS_STATUS
-          output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}
-            ${{ steps.analysis.outputs.performance_summary }}
-            ${{ steps.analysis.outputs.cache_recommendations }}
-            ${{ steps.analysis.outputs.docker_optimizations }}
-            ${{ steps.analysis.outputs.status }}
           delimiter: "\n"
           trim_whitespace: true
           debug_mode: true
@@ -97,16 +85,6 @@ jobs:
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
           echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
           echo "Status: ${{ env.STATUS }}"
-
-          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
-            echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
-            echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
-            echo "```" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Note" >> $GITHUB_STEP_SUMMARY
-            echo "No metrics data available" >> $GITHUB_STEP_SUMMARY
-          fi
 
   analyze-test-workflow:
     name: Analyze Test Workflow
@@ -141,18 +119,6 @@ jobs:
             ${{ steps.analysis.outputs.cache_recommendations }}
             ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: |
-            FORMATTED_METRICS
-            FORMATTED_PERFORMANCE
-            FORMATTED_CACHE
-            FORMATTED_DOCKER
-            ANALYSIS_STATUS
-          output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}
-            ${{ steps.analysis.outputs.performance_summary }}
-            ${{ steps.analysis.outputs.cache_recommendations }}
-            ${{ steps.analysis.outputs.docker_optimizations }}
-            ${{ steps.analysis.outputs.status }}
           delimiter: "\n"
           trim_whitespace: true
           debug_mode: true
@@ -166,16 +132,6 @@ jobs:
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
           echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
           echo "Status: ${{ env.STATUS }}"
-
-          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
-            echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
-            echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
-            echo "```" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Note" >> $GITHUB_STEP_SUMMARY
-            echo "No metrics data available" >> $GITHUB_STEP_SUMMARY
-          fi
 
   analyze-target-workflow:
     name: Analyze Target Workflow
@@ -210,18 +166,6 @@ jobs:
             ${{ steps.analysis.outputs.cache_recommendations }}
             ${{ steps.analysis.outputs.docker_optimizations }}
             ${{ steps.analysis.outputs.status }}
-          output_key: |
-            FORMATTED_METRICS
-            FORMATTED_PERFORMANCE
-            FORMATTED_CACHE
-            FORMATTED_DOCKER
-            ANALYSIS_STATUS
-          output_value: |
-            ${{ steps.analysis.outputs.metrics_summary }}
-            ${{ steps.analysis.outputs.performance_summary }}
-            ${{ steps.analysis.outputs.cache_recommendations }}
-            ${{ steps.analysis.outputs.docker_optimizations }}
-            ${{ steps.analysis.outputs.status }}
           delimiter: "\n"
           trim_whitespace: true
           debug_mode: true
@@ -235,13 +179,3 @@ jobs:
           echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
           echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
           echo "Status: ${{ env.STATUS }}"
-
-          if [ ! -z "${{ env.METRICS_SUMMARY }}" ]; then
-            echo "### Formatted Metrics" >> $GITHUB_STEP_SUMMARY
-            echo "```json" >> $GITHUB_STEP_SUMMARY
-            echo '${{ env.METRICS_SUMMARY }}' | jq '.' >> $GITHUB_STEP_SUMMARY || echo "Failed to parse JSON"
-            echo "```" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Note" >> $GITHUB_STEP_SUMMARY
-            echo "No metrics data available" >> $GITHUB_STEP_SUMMARY
-          fi
