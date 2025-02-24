@@ -113,7 +113,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@1.70.0  # 의도적으로 이전 버전 사용
+        uses: dtolnay/rust-toolchain@1.90.0  # 의도적으로 이전 버전 사용
 
       - name: Build (캐시 미사용)
         run: |
