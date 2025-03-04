@@ -1,11 +1,12 @@
 # Changelog
 
-## [v1.2.0](https://github.com/somaz94/github-action-analyzer/tree/v1.2.0) (2025-02-24)
+## [v1.2.0](https://github.com/somaz94/github-action-analyzer/tree/v1.2.0) (2025-03-04)
 
 [Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.0...v1.2.0)
 
 **Merged pull requests:**
 
+- build\(deps\): bump golang.org/x/oauth2 from 0.26.0 to 0.27.0 in the go-mod-minor group [\#3](https://github.com/somaz94/github-action-analyzer/pull/3) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump dtolnay/rust-toolchain from 1.70.0 to 1.90.0 in the actions-minor group [\#2](https://github.com/somaz94/github-action-analyzer/pull/2) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.2.0](https://github.com/somaz94/github-action-analyzer/tree/v1.2.0) (2025-02-20)
