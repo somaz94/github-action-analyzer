@@ -188,35 +188,29 @@ func (r *PerformanceReport) setGitHubOutputs() error {
 		return err
 	}
 
-	// Get GITHUB_OUTPUT environment variable
+	// Get GitHub output file path from environment
 	outputFile := os.Getenv("GITHUB_OUTPUT")
 	if outputFile == "" {
 		return fmt.Errorf("GITHUB_OUTPUT environment variable not set")
 	}
 
-	// Open the file in append mode
-	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Open the file for appending
+	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %v", err)
 	}
 	defer f.Close()
 
-	// Write outputs to the file
-	if _, err := fmt.Fprintf(f, "metrics_summary=%s\n", metricsSummary); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(f, "performance_summary=%s\n", performanceSummary); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(f, "cache_recommendations=%s\n", cacheRecs); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(f, "docker_optimizations=%s\n", dockerOpts); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(f, "status=success\n"); err != nil {
-		return err
-	}
+	// Write outputs to the file with proper escaping
+	// Use delimiter to safely handle multiline values
+	delimiter := "EOF_" + time.Now().Format("20060102150405")
+
+	// Write each output with its own delimiter
+	fmt.Fprintf(f, "metrics_summary<<%s\n%s\n%s\n", delimiter, metricsSummary, delimiter)
+	fmt.Fprintf(f, "performance_summary<<%s\n%s\n%s\n", delimiter, performanceSummary, delimiter)
+	fmt.Fprintf(f, "cache_recommendations<<%s\n%s\n%s\n", delimiter, cacheRecs, delimiter)
+	fmt.Fprintf(f, "docker_optimizations<<%s\n%s\n%s\n", delimiter, dockerOpts, delimiter)
+	fmt.Fprintf(f, "status=success\n")
 
 	return nil
 }
