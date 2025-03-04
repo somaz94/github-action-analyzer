@@ -79,11 +79,11 @@ jobs:
       - name: Print Analysis Results
         if: always()
         run: |
-          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
-          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
-          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
-          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
-          echo "Status: ${{ env.STATUS }}"
+          echo "Metrics Summary: '${{ env.METRICS_SUMMARY }}'"
+          echo "Performance Summary: '${{ env.PERFORMANCE_SUMMARY }}'"
+          echo "Cache Recommendations: '${{ env.CACHE_RECOMMENDATIONS }}'"
+          echo "Docker Optimizations: '${{ env.DOCKER_OPTIMIZATIONS }}'"
+          echo "Status: '${{ env.STATUS }}'"
 
   analyze-test-workflow:
     name: Analyze Test Workflow
