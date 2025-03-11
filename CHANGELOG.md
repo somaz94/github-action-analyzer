@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.2.1](https://github.com/somaz94/github-action-analyzer/tree/v1.2.1) (2025-03-11)
+
+[Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.1...v1.2.1)
+
+**Merged pull requests:**
+
+- build\(deps\): bump golang.org/x/oauth2 from 0.27.0 to 0.28.0 in the go-mod-minor group [\#4](https://github.com/somaz94/github-action-analyzer/pull/4) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.2.1](https://github.com/somaz94/github-action-analyzer/tree/v1.2.1) (2025-03-04)
 
 [Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.0...v1.2.1)
