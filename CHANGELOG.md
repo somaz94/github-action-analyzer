@@ -1,8 +1,8 @@
 # Changelog
 
-## [v1.2.1](https://github.com/somaz94/github-action-analyzer/tree/v1.2.1) (2025-03-19)
+## [v1.2.2](https://github.com/somaz94/github-action-analyzer/tree/v1.2.2) (2025-03-19)
 
-[Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.1...v1.2.1)
+[Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.1...v1.2.2)
 
 **Merged pull requests:**
 
