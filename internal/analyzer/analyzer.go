@@ -667,6 +667,9 @@ func unique(slice []string) []string {
 
 // analyzeWorkflowStructure analyzes the workflow structure and patterns
 func (a *Analyzer) analyzeWorkflowStructure(content string, report *models.PerformanceReport) error {
+	// GitHub 표현식 이스케이프 처리 추가
+	content = strings.ReplaceAll(content, "${", "\\${")
+
 	analysis := &models.WorkflowAnalysis{
 		Recommendations:     make([]string, 0),
 		RunnerOptimizations: make([]string, 0),

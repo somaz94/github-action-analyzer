@@ -48,6 +48,12 @@ type PerformanceReport struct {
 func (r *PerformanceReport) Output() error {
 	r.calculateMetrics()
 
+	// JSON 마샬링 시 특수 문자 이스케이프 처리
+	for i, rec := range r.CacheRecommendations {
+		rec.Example = strings.ReplaceAll(rec.Example, "${", "\\${")
+		r.CacheRecommendations[i] = rec
+	}
+
 	summary := fmt.Sprintf(`
 ╭──────────────────────────────────────────────╮
 │           Workflow Analysis Report            │
