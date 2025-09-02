@@ -6,6 +6,7 @@
 
 **Merged pull requests:**
 
+- build\(deps\): bump actions/setup-java from 4 to 5 [\#10](https://github.com/somaz94/github-action-analyzer/pull/10) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump golang from 1.24-alpine to 1.25-alpine in the docker-minor group [\#9](https://github.com/somaz94/github-action-analyzer/pull/9) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump super-linter/super-linter from 7 to 8 [\#8](https://github.com/somaz94/github-action-analyzer/pull/8) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump golang.org/x/oauth2 from 0.29.0 to 0.30.0 in the go-mod-minor group [\#7](https://github.com/somaz94/github-action-analyzer/pull/7) ([dependabot[bot]](https://github.com/apps/dependabot))
