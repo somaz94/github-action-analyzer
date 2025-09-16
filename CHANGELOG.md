@@ -6,6 +6,7 @@
 
 **Merged pull requests:**
 
+- build\(deps\): bump actions/setup-node from 4 to 5 [\#16](https://github.com/somaz94/github-action-analyzer/pull/16) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-python from 5 to 6 [\#15](https://github.com/somaz94/github-action-analyzer/pull/15) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-dotnet from 4 to 5 [\#14](https://github.com/somaz94/github-action-analyzer/pull/14) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-go from 5 to 6 [\#13](https://github.com/somaz94/github-action-analyzer/pull/13) ([dependabot[bot]](https://github.com/apps/dependabot))
