@@ -6,6 +6,7 @@
 
 **Merged pull requests:**
 
+- build\(deps\): bump actions/setup-go from 5 to 6 [\#13](https://github.com/somaz94/github-action-analyzer/pull/13) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump golang.org/x/oauth2 from 0.30.0 to 0.31.0 in the go-mod-minor group [\#12](https://github.com/somaz94/github-action-analyzer/pull/12) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/checkout from 4 to 5 [\#11](https://github.com/somaz94/github-action-analyzer/pull/11) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-java from 4 to 5 [\#10](https://github.com/somaz94/github-action-analyzer/pull/10) ([dependabot[bot]](https://github.com/apps/dependabot))
