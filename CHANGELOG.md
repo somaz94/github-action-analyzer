@@ -1,11 +1,12 @@
 # Changelog
 
-## [v1.2.2](https://github.com/somaz94/github-action-analyzer/tree/v1.2.2) (2025-09-02)
+## [v1.2.2](https://github.com/somaz94/github-action-analyzer/tree/v1.2.2) (2025-09-16)
 
 [Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.2...v1.2.2)
 
 **Merged pull requests:**
 
+- build\(deps\): bump golang.org/x/oauth2 from 0.30.0 to 0.31.0 in the go-mod-minor group [\#12](https://github.com/somaz94/github-action-analyzer/pull/12) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/checkout from 4 to 5 [\#11](https://github.com/somaz94/github-action-analyzer/pull/11) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-java from 4 to 5 [\#10](https://github.com/somaz94/github-action-analyzer/pull/10) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump golang from 1.24-alpine to 1.25-alpine in the docker-minor group [\#9](https://github.com/somaz94/github-action-analyzer/pull/9) ([dependabot[bot]](https://github.com/apps/dependabot))
