@@ -122,14 +122,14 @@ jobs:
           trim_whitespace: true
           debug_mode: true
 
-      - name: Print Analysis Results
-        if: always()
-        run: |
-          echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
-          echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
-          echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
-          echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
-          echo "Status: ${{ env.STATUS }}"
+      # - name: Print Analysis Results
+      #   if: always()
+      #   run: |
+      #     echo "Metrics Summary: ${{ env.METRICS_SUMMARY }}"
+      #     echo "Performance Summary: ${{ env.PERFORMANCE_SUMMARY }}"
+      #     echo "Cache Recommendations: ${{ env.CACHE_RECOMMENDATIONS }}"
+      #     echo "Docker Optimizations: ${{ env.DOCKER_OPTIMIZATIONS }}"
+      #     echo "Status: ${{ env.STATUS }}"
 
   analyze-target-workflow:
     name: Analyze Target Workflow
