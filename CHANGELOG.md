@@ -1,11 +1,12 @@
 # Changelog
 
-## [v1.2.2](https://github.com/somaz94/github-action-analyzer/tree/v1.2.2) (2025-10-21)
+## [v1.2.2](https://github.com/somaz94/github-action-analyzer/tree/v1.2.2) (2025-10-22)
 
 [Full Changelog](https://github.com/somaz94/github-action-analyzer/compare/v1.2.2...v1.2.2)
 
 **Merged pull requests:**
 
+- YOLO test [\#19](https://github.com/somaz94/github-action-analyzer/pull/19) ([somaz94](https://github.com/somaz94))
 - build\(deps\): bump actions/setup-node from 5 to 6 [\#18](https://github.com/somaz94/github-action-analyzer/pull/18) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump golang.org/x/oauth2 from 0.31.0 to 0.32.0 in the go-mod-minor group [\#17](https://github.com/somaz94/github-action-analyzer/pull/17) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/setup-node from 4 to 5 [\#16](https://github.com/somaz94/github-action-analyzer/pull/16) ([dependabot[bot]](https://github.com/apps/dependabot))
